@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>de.elias.moualem</groupId>
-	<artifactId>Aufnahmebogen</artifactId>
+	<artifactId>Anamnesebogen</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Aufnahmebogen</name>
 	<description>Demo project for Spring Boot</description>
