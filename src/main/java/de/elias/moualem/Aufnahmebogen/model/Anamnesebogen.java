@@ -1,4 +1,4 @@
 package de.elias.moualem.Aufnahmebogen.model;
 
-public class Aufnahmebogen {
+public class Anamnesebogen {
 }

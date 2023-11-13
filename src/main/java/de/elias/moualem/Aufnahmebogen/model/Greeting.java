@@ -5,8 +5,9 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class Patient {
+public class Greeting {
 
-    private String name;
-    private String message;
+    private long id;
+    private String content;
+
 }

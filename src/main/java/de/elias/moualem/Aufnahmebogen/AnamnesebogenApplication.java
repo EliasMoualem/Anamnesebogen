@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class AufnahmebogenApplication {
+public class AnamnesebogenApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(AufnahmebogenApplication.class, args);
+		SpringApplication.run(AnamnesebogenApplication.class, args);
 	}
 
 }

@@ -44,7 +44,7 @@ public class StudentController {
                 Files.copy(file, response.getOutputStream());
                 response.getOutputStream().flush();
             }
-        } catch (IOException | DocumentException ex) {
+        } catch (DocumentException | IOException ex) {
             ex.printStackTrace();
         }
     }
