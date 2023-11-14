@@ -1,6 +1,6 @@
 package de.elias.moualem.Aufnahmebogen.controller;
 
-import de.elias.moualem.Aufnahmebogen.model.Greeting;
+import de.elias.moualem.Aufnahmebogen.model.Patient;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,13 +12,13 @@ public class GreetingController {
 
     @GetMapping("/greeting")
     public String greetingForm(Model model) {
-        model.addAttribute("greeting", new Greeting());
+        model.addAttribute("patient", new Patient());
         return "greeting";
     }
 
     @PostMapping("/x")
-    public String greetingSubmit(@ModelAttribute Greeting greeting, Model model) {
-        model.addAttribute("greeting", greeting);
+    public String greetingSubmit(@ModelAttribute Patient patient, Model model) {
+        model.addAttribute("patient", patient);
         return "result";
     }
 

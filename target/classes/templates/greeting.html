@@ -5,20 +5,41 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 <body>
-<h1>Form</h1>
-<form action="#" th:action="@{/x}" th:object="${greeting}" method="post">
+<img class="logo" src="https://kfo-rostock.de/wp-content/uploads/2022/08/logo3-.png" height="100" width="200" alt="logo"/>
+<h3>Anamnesebogen für Kinder und Jugendliche</h3>
+<p>Liebe Patienten,<br>
+    willkommen in unserer Praxis! Für eine sorgfältige Untersuchung benötigen wir die genaue
+    Beantwortung dieses Fragebogens.<br>
+    Natürlich unterliegen diese Daten der ärztlichen Schweigepflicht
+    und werden vertraulich behandelt.<br>
+    Vielen Dank.
+</p>
+<form action="#" th:action="@{/x}" th:object="${patient}" method="post">
     <p>
         <label for="lastname">Name:</label>
-        <input type="text" th:field="${greeting.lastName}" id="lastname"/>
+        <input type="text" th:field="${patient.lastName}" id="lastname"/>
     </p>
     <p>
         <label for="firstname">Vorname:</label>
-        <input type="text" th:field="${greeting.firstName}" id="firstname"/>
+        <input type="text" th:field="${patient.firstName}" id="firstname"/>
     </p>
-    <div>
+    <p>
         <label for="patient-birth-date">Geb. Datum:</label>
-        <input type="date" th:field="${greeting.birthDate}" id="patient-birth-date"/>
-    </div>
+        <input type="date" th:field="${patient.birthDate}" id="patient-birth-date"/>
+    </p>
+    <p>Geschlecht:
+        <input type="radio" th:field="${patient.gender}" id="gender" name="gender" value="weiblich">
+        <label for="gender">weiblich</label>
+        <input type="radio" th:field="${patient.gender}" id="css" name="gender" value="männlich">
+        <label for="css">männlich</label><br>
+    </p>
+
+
+
+
+
+
+
     <p><input type="submit" value="Submit" /> <input type="reset" value="Reset" /></p>
 </form>
 </body>
