@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html xmlns:th="https://www.thymeleaf.org">
+<html xmlns:th="https://www.thymeleaf.org" lang="de">
 <head>
     <title>Getting Started: Handling Form Submission</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -7,8 +7,18 @@
 <body>
 <h1>Form</h1>
 <form action="#" th:action="@{/x}" th:object="${greeting}" method="post">
-    <p>Id: <input type="text" th:field="*{id}" /></p>
-    <p>Message: <input type="text" th:field="*{content}" /></p>
+    <p>
+        <label for="lastname">Name:</label>
+        <input type="text" th:field="${greeting.lastName}" id="lastname"/>
+    </p>
+    <p>
+        <label for="firstname">Vorname:</label>
+        <input type="text" th:field="${greeting.firstName}" id="firstname"/>
+    </p>
+    <div>
+        <label for="patient-birth-date">Geb. Datum:</label>
+        <input type="date" th:field="${greeting.birthDate}" id="patient-birth-date"/>
+    </div>
     <p><input type="submit" value="Submit" /> <input type="reset" value="Reset" /></p>
 </form>
 </body>
