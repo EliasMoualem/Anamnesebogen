@@ -19,6 +19,9 @@ public class GreetingController {
     @PostMapping("/x")
     public String greetingSubmit(@ModelAttribute Patient patient, Model model) {
         model.addAttribute("patient", patient);
+
+        //create pdf and store result
+
         return "result";
     }
 
