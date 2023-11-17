@@ -39,7 +39,7 @@ const handlePointerMove = (event) => {
     ctx.lineTo(positionX, positionY);
     ctx.stroke();
 }
-const handlePointerUp = (event) => {
+const handlePointerUp = () => {
     writingMode = false;
 }
 const handlePointerDown = (event) => {
