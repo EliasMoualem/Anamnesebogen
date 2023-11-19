@@ -4,6 +4,7 @@ import com.lowagie.text.DocumentException;
 import de.elias.moualem.Aufnahmebogen.service.PdfService;
 import de.elias.moualem.Aufnahmebogen.service.StudentService;
 import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,7 +46,7 @@ public class StudentController {
                 response.getOutputStream().flush();
             }
         } catch (DocumentException | IOException ex) {
-            ex.printStackTrace();
+            //TODO: @slf4j
         }
     }
 }

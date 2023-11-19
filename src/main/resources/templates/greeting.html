@@ -17,6 +17,7 @@
     Vielen Dank.
 </p>
 <form action="#" th:action="@{/x}" th:object="${patient}" method="post">
+    <!--name-->
     <div class="form-row">
         <div class="form-col ml-3">
             <input type="text" th:field="${patient.lastName}" id="lastname" class="form-control" placeholder="Name">
@@ -28,13 +29,13 @@
             <label for="firstname"></label>
         </div>
     </div>
-
-    <div class="form-row">
+    <!--birthday + gender-->
+    <div class="form-row mb-4">
         <div class="form-col ml-3">
             <label for="patient-birth-date">geboren am:</label>
             <input type="date" th:field="${patient.birthDate}" id="patient-birth-date"/>
         </div>
-
+        <!--gender radio buttons-->
         <div class="form-check form-check-inline ml-5">
             <input class="form-check-input" type="radio" th:field="${patient.gender}" name="flexRadioDefault" id="weiblich-radio" value="weiblich">
             <label class="form-check-label" for="weiblich-radio">
@@ -48,7 +49,7 @@
             </label>
         </div>
     </div>
-
+    <!--address-->
     <div class="form-row">
         <div class="form-col ml-3">
             <input type="text" th:field="${patient.street}" id="street" class="form-control" placeholder="Straße">
@@ -63,7 +64,24 @@
             <label for="city"></label>
         </div>
     </div>
+    <!--telefon numbers-->
+    <div class="form-row">
+        <div class="form-col ml-3">
+            <input type="text" th:field="${patient.phoneNumber}" id="phone-number" class="form-control" placeholder="Telefon">
+            <label for="phone-number"></label>
+        </div>
+        <div class="form-col ml-3">
+            <input type="text" th:field="${patient.mobileNumber}" id="telefon-number" class="form-control" placeholder="Telefon(mobil)">
+            <label for="telefon-number"></label>
+        </div>
+    </div>
 
+    <div class="form-row">
+        <div class="col-md-4 ml-2">
+            <input type="text" th:field="${patient.emailAddress}" id="email" class="form-control" placeholder="E-mail">
+            <label for="email"></label>
+        </div>
+    </div>
 
 
 
