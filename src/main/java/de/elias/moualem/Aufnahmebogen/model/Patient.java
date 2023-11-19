@@ -1,10 +1,11 @@
 package de.elias.moualem.Aufnahmebogen.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-@Setter
-@Getter
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Patient {
 
     private String lastName;
