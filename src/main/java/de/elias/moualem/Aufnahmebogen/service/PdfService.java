@@ -1,6 +1,7 @@
 package de.elias.moualem.Aufnahmebogen.service;
 
 import com.lowagie.text.DocumentException;
+import de.elias.moualem.Aufnahmebogen.model.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -26,8 +27,8 @@ public class PdfService {
         this.templateEngine = templateEngine;
     }
 
-    public File generatePdf() throws IOException, DocumentException {
-        Context context = getContext();
+    public File generatePdf(Patient patient) throws IOException, DocumentException {
+        Context context = getContext(patient);
         String html = loadAndFillTemplate(context);
         return renderPdf(html);
     }
@@ -44,13 +45,13 @@ public class PdfService {
         return file;
     }
 
-    private Context getContext() {
+    private Context getContext(Patient patient) {
         Context context = new Context();
-        context.setVariable("students", studentService.getStudents());
+        context.setVariable("patient", patient);
         return context;
     }
 
     private String loadAndFillTemplate(Context context) {
-        return templateEngine.process("pdf_students", context);
+        return templateEngine.process("pdf_anamnesebogen", context);
     }
 }
