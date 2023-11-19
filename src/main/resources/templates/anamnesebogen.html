@@ -16,7 +16,7 @@
     und werden vertraulich behandelt.<br>
     Vielen Dank.
 </p>
-<form action="#" th:action="@{/x}" th:object="${patient}" method="post">
+<form action="#" th:action="@{/pdf}" th:object="${patient}" method="get">
     <!--name-->
     <div class="form-row">
         <div class="form-col ml-3">
@@ -128,5 +128,6 @@
 
     document.addEventListener("DOMContentLoaded", setupSignature);
 </script>
+<a href="/anamnesebogen">Submit another message</a>
 </body>
 </html>
