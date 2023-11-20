@@ -4,11 +4,11 @@ import com.lowagie.text.DocumentException;
 import de.elias.moualem.Aufnahmebogen.model.Patient;
 import de.elias.moualem.Aufnahmebogen.service.PdfService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,7 +32,7 @@ public class AnamnesebogenController {
     }
 
     @GetMapping("/pdf")
-    public void createAndStorePDF(HttpServletResponse response, @ModelAttribute Patient patient) {
+    public void createAndStorePDF(HttpServletResponse response, @Valid Patient patient) {
         try {
             Path file = Paths.get(pdfService.generatePdf(patient).getAbsolutePath());
             if (Files.exists(file)) {
