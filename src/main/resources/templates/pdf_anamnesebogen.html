@@ -10,59 +10,59 @@
     <img class="logo" src="https://kfo-rostock.de/wp-content/uploads/2022/08/logo3-.png" height="100" width="200"
          alt="logo"/>
 
-    <div class="form-row">
-        <div class="form-col ml-3">
-            <h3 th:text="${patient.lastName}" id="lastname"></h3>
+    <div>
+        <div>
+            <h5 th:text="${patient.lastName}" id="lastname"></h5>
             <label for="lastname"></label>
         </div>
 
-        <div class="form-col ml-2">
+        <div>
             <h3 type="text" th:text="${patient.firstName}" id="firstname"></h3>
             <label for="firstname"></label>
         </div>
     </div>
     <!--birthday + gender-->
-    <div class="form-row mb-4">
-        <div class="form-col ml-3">
+    <div>
+        <div>
             <label for="patient-birth-date">geboren am:</label>
             <h3 th:text="${patient.birthDate}" id="patient-birth-date"></h3>
         </div>
         <!--gender radio buttons-->
         <div class="form-check form-check-inline ml-5">
-            <h3 class="form-check-input" type="radio" th:text="${patient.gender}" id="weiblich-radio"></h3>
+            <h3 type="radio" th:text="${patient.gender}" id="weiblich-radio"></h3>
             <label for="weiblich-radio"></label>
         </div>
     </div>
     <!--address-->
-    <div class="form-row">
-        <div class="form-col ml-3">
-            <h3 th:text="${patient.street}" id="street" class="form-control"/>
+    <div>
+        <div>
+            <h3 th:text="${patient.street}" id="street"/>
             <label for="street"></label>
         </div>
-        <div class="form-col ml-3">
-            <h3 th:text="${patient.zipCode}" id="zipcode" class="form-control"/>
+        <div>
+            <h3 th:text="${patient.zipCode}" id="zipcode"/>
             <label for="zipcode"></label>
         </div>
-        <div class="form-col ml-3">
-            <h3 th:text="${patient.city}" id="city" class="form-control"/>
+        <div>
+            <h3 th:text="${patient.city}" id="city"/>
             <label for="city"></label>
         </div>
     </div>
     <!--telefon numbers-->
-    <div class="form-row">
-        <div class="form-col ml-3">
-            <h3 th:text="${patient.phoneNumber}" id="phone-number" class="form-control"></h3>
+    <div>
+        <div>
+            <h3 th:text="${patient.phoneNumber}" id="phone-number"></h3>
             <label for="phone-number"></label>
         </div>
-        <div class="form-col ml-3">
-            <h3 th:text="${patient.mobileNumber}" id="telefon-number" class="form-control"/>
+        <div>
+            <h3 th:text="${patient.mobileNumber}" id="telefon-number"/>
             <label for="telefon-number"></label>
         </div>
     </div>
 
-    <div class="form-row">
-        <div class="col-md-4 ml-2">
-            <h3 th:text="${patient.emailAddress}" id="email" class="form-control"/>
+    <div>
+        <div>
+            <h3 th:text="${patient.emailAddress}" id="email"/>
             <label for="email"></label>
         </div>
     </div>
