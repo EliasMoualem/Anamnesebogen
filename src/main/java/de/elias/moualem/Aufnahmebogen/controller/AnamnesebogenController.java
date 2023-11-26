@@ -5,7 +5,8 @@ import de.elias.moualem.Aufnahmebogen.model.Patient;
 import de.elias.moualem.Aufnahmebogen.service.PdfService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,14 +17,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Controller
+@Slf4j
+@RequiredArgsConstructor
 public class AnamnesebogenController {
 
     private final PdfService pdfService;
-
-    @Autowired
-    public AnamnesebogenController(PdfService pdfService) {
-        this.pdfService = pdfService;
-    }
 
     @GetMapping("/anamnesebogen")
     public String anamnesebogen(Model model) {
@@ -43,7 +41,7 @@ public class AnamnesebogenController {
                 response.getOutputStream().flush();
             }
         } catch (DocumentException | IOException ex) {
-            //TODO: @slf4j
+            log.error("DocumentException|IOException was thrown", ex);
         }
     }
 }

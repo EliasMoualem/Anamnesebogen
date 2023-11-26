@@ -2,7 +2,7 @@ package de.elias.moualem.Aufnahmebogen.service;
 
 import com.lowagie.text.DocumentException;
 import de.elias.moualem.Aufnahmebogen.model.Patient;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
@@ -14,15 +14,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 @Service
+@RequiredArgsConstructor
 public class PdfService {
 
     //private static final String PDF_RESOURCES = "/pdf-resources/";
     private final SpringTemplateEngine templateEngine;
-
-    @Autowired
-    public PdfService(SpringTemplateEngine templateEngine) {
-        this.templateEngine = templateEngine;
-    }
 
     public File generatePdf(Patient patient) throws IOException, DocumentException {
         Context context = getContext(patient);

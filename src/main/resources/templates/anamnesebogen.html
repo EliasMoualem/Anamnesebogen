@@ -111,6 +111,7 @@
 <script>
 
     let signaturePad
+    let signatureData;
 
     function setupSignature(){
 
@@ -122,7 +123,13 @@
         signaturePad.clear();
     }
 
+    function sendSignature(){
+        signatureData = signaturePad.toDataURL();
+        console.log(signatureData);
+    }
+
     document.getElementById("reset-button").addEventListener("click", clearSignature);
+    document.getElementById("submit-button").addEventListener("click", sendSignature);
 
     document.addEventListener("DOMContentLoaded", setupSignature);
 </script>
