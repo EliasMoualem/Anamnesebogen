@@ -31,7 +31,8 @@ public class PdfService {
     }
 
     private File renderPdf(String html) throws IOException, DocumentException {
-        File file = File.createTempFile("students", ".pdf");
+        //String fileName = patient.getLastName() + ", " + patient.getFirstName() + " Anamnesebogen";
+        File file = File.createTempFile("Anamnesebogen", ".pdf");
         OutputStream outputStream = new FileOutputStream(file);
         ITextRenderer renderer = new ITextRenderer(20f * 4f / 3f, 20);
         renderer.setDocumentFromString(html);
