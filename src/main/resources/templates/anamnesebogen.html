@@ -4,7 +4,9 @@
     <title>Anamnesebogen für Kinder und Jugendliche</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+   
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.2/jspdf.min.js"></script>
 </head>
 <body>
 <img src="https://kfo-rostock.de/wp-content/uploads/2022/08/logo3-.png" height="100" width="200" alt="logo"/>
@@ -97,7 +99,7 @@
     </div>
 
     <p>
-        <input type="submit" value="Submit" id="submit-button" class="btn btn-primary ml-3"/>
+        <input type="submit" value="Submit" id="submit-button"  class="btn btn-primary ml-3"/>
         <input type="reset" value="Reset" id="reset-button" class="btn btn-secondary"/>
     </p>
 
@@ -108,31 +110,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 
-<script>
-
-    let signaturePad
-    let signatureData;
-
-    function setupSignature(){
-
-        const canvas = document.getElementById("signature-pad");
-        signaturePad = new SignaturePad(canvas);
-    }
-
-    function clearSignature(){
-        signaturePad.clear();
-    }
-
-    function sendSignature(){
-        signatureData = signaturePad.toDataURL();
-        console.log(signatureData);
-    }
-
-    document.getElementById("reset-button").addEventListener("click", clearSignature);
-    document.getElementById("submit-button").addEventListener("click", sendSignature);
-
-    document.addEventListener("DOMContentLoaded", setupSignature);
-</script>
 <a href="/anamnesebogen">Submit another message</a>
+<script src="../scriptFolder/index.js"></script>
 </body>
 </html>
