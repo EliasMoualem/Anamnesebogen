@@ -16,34 +16,34 @@
     und werden vertraulich behandelt.<br>
     Vielen Dank.
 </p>
-<form action="#" th:action="@{/pdf}" th:object="${patient}" method="get">
+<form th:action="@{/pdf}" th:object="${minorPatient}" method="get">
     <!--name-->
     <div class="form-row">
         <div class="form-col ml-3">
-            <input type="text" th:field="${patient.lastName}" id="lastname" class="form-control" placeholder="Name">
+            <input type="text" th:field="${minorPatient.lastName}" id="lastname" class="form-control" placeholder="Name">
             <label for="lastname"></label>
         </div>
 
         <div class="form-col ml-2">
-            <input type="text" th:field="${patient.firstName}" id="firstname" class="form-control" placeholder="Vorname">
+            <input type="text" th:field="${minorPatient.firstName}" id="firstname" class="form-control" placeholder="Vorname">
             <label for="firstname"></label>
         </div>
     </div>
     <!--birthday + gender-->
     <div class="form-row mb-4">
         <div class="form-col ml-3">
-            <label for="patient-birth-date">geboren am:</label>
-            <input type="date" th:field="${patient.birthDate}" id="patient-birth-date"/>
+            <label for="minorPatient-birth-date">geboren am:</label>
+            <input type="date" th:field="${minorPatient.birthDate}" id="minorPatient-birth-date"/>
         </div>
         <!--gender radio buttons-->
         <div class="form-check form-check-inline ml-5">
-            <input class="form-check-input" type="radio" th:field="${patient.gender}" name="flexRadioDefault" id="weiblich-radio" value="weiblich">
+            <input class="form-check-input" type="radio" th:field="${minorPatient.gender}" name="flexRadioDefault" id="weiblich-radio" value="weiblich">
             <label class="form-check-label" for="weiblich-radio">
                 weiblich
             </label>
         </div>
         <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" th:field="${patient.gender}" name="flexRadioDefault" id="männlich-radio" value="männlich">
+            <input class="form-check-input" type="radio" th:field="${minorPatient.gender}" name="flexRadioDefault" id="männlich-radio" value="männlich">
             <label class="form-check-label" for="männlich-radio">
                 männlich
             </label>
@@ -52,33 +52,104 @@
     <!--address-->
     <div class="form-row">
         <div class="form-col ml-3">
-            <input type="text" th:field="${patient.street}" id="street" class="form-control" placeholder="Straße">
+            <input type="text" th:field="${minorPatient.street}" id="street" class="form-control" placeholder="Straße">
             <label for="street"></label>
         </div>
         <div class="form-col ml-3">
-            <input type="text" th:field="${patient.zipCode}" id="zipcode" class="form-control" placeholder="PLZ">
+            <input type="text" th:field="${minorPatient.zipCode}" id="zipcode" class="form-control" placeholder="PLZ">
             <label for="zipcode"></label>
         </div>
         <div class="form-col ml-3">
-            <input type="text" th:field="${patient.city}" id="city" class="form-control" placeholder="Ort">
+            <input type="text" th:field="${minorPatient.city}" id="city" class="form-control" placeholder="Ort">
             <label for="city"></label>
         </div>
     </div>
     <!--telefon numbers-->
     <div class="form-row">
         <div class="form-col ml-3">
-            <input type="text" th:field="${patient.phoneNumber}" id="phone-number" class="form-control" placeholder="Telefon">
+            <input type="text" th:field="${minorPatient.phoneNumber}" id="phone-number" class="form-control" placeholder="Telefon">
             <label for="phone-number"></label>
         </div>
         <div class="form-col ml-3">
-            <input type="text" th:field="${patient.mobileNumber}" id="telefon-number" class="form-control" placeholder="Telefon(mobil)">
+            <input type="text" th:field="${minorPatient.mobileNumber}" id="telefon-number" class="form-control" placeholder="Telefon(mobil)">
             <label for="telefon-number"></label>
         </div>
     </div>
 
     <div class="form-row">
         <div class="col-md-4 ml-2">
-            <input type="text" th:field="${patient.emailAddress}" id="email" class="form-control" placeholder="E-mail">
+            <input type="text" th:field="${minorPatient.emailAddress}" id="email" class="form-control" placeholder="E-mail">
+            <label for="email"></label>
+        </div>
+    </div>
+
+
+
+    <p>Hauptversicherten/ Erziehungsberechtigten</p>
+
+
+    <!--name-->
+    <div class="form-row">
+        <div class="form-col ml-3">
+            <input type="text" th:field="${minorPatient.mainInsuranceParent.lastName}" id="parent-lastname" class="form-control" placeholder="Name">
+            <label for="parent-lastname"></label>
+        </div>
+
+        <div class="form-col ml-2">
+            <input type="text" th:field="${minorPatient.mainInsuranceParent.firstName}" id="parent-firstname" class="form-control" placeholder="Vorname">
+            <label for="parent-firstname"></label>
+        </div>
+    </div>
+    <!--birthday + gender-->
+    <div class="form-row mb-4">
+        <div class="form-col ml-3">
+            <label for="parent-birth-date">geboren am:</label>
+            <input type="date" th:field="${minorPatient.mainInsuranceParent.birthDate}" id="parent-birth-date"/>
+        </div>
+        <!--gender radio buttons-->
+        <div class="form-check form-check-inline ml-5">
+            <input class="form-check-input" type="radio" th:field="${minorPatient.gender}" name="flexRadioDefault" id="weiblich-radio" value="weiblich">
+            <label class="form-check-label" for="weiblich-radio">
+                weiblich
+            </label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" th:field="${minorPatient.gender}" name="flexRadioDefault" id="männlich-radio" value="männlich">
+            <label class="form-check-label" for="männlich-radio">
+                männlich
+            </label>
+        </div>
+    </div>
+    <!--address-->
+    <div class="form-row">
+        <div class="form-col ml-3">
+            <input type="text" th:field="${minorPatient.street}" id="street" class="form-control" placeholder="Straße">
+            <label for="street"></label>
+        </div>
+        <div class="form-col ml-3">
+            <input type="text" th:field="${minorPatient.zipCode}" id="zipcode" class="form-control" placeholder="PLZ">
+            <label for="zipcode"></label>
+        </div>
+        <div class="form-col ml-3">
+            <input type="text" th:field="${minorPatient.city}" id="city" class="form-control" placeholder="Ort">
+            <label for="city"></label>
+        </div>
+    </div>
+    <!--telefon numbers-->
+    <div class="form-row">
+        <div class="form-col ml-3">
+            <input type="text" th:field="${minorPatient.phoneNumber}" id="phone-number" class="form-control" placeholder="Telefon">
+            <label for="phone-number"></label>
+        </div>
+        <div class="form-col ml-3">
+            <input type="text" th:field="${minorPatient.mobileNumber}" id="telefon-number" class="form-control" placeholder="Telefon(mobil)">
+            <label for="telefon-number"></label>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="col-md-4 ml-2">
+            <input type="text" th:field="${minorPatient.emailAddress}" id="email" class="form-control" placeholder="E-mail">
             <label for="email"></label>
         </div>
     </div>
@@ -87,6 +158,25 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <p id="demo"></p>
+    <img src="" id="signature"  alt=""/>
 
 
 
@@ -108,10 +198,13 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 
+
+<a href="/anamnesebogen">Submit another message</a>
+
 <script>
 
     let signaturePad
-    let signatureData;
+    let signatureData
 
     function setupSignature(){
 
@@ -123,16 +216,19 @@
         signaturePad.clear();
     }
 
-    function sendSignature(){
-        signatureData = signaturePad.toDataURL();
-        console.log(signatureData);
-    }
+    // function sendSignature(){
+    //     signatureData = signaturePad.toDataURL();
+    //     //localStorage.setItem("signatureData", signatureData);
+    //     document.getElementById("signature").src = signatureData;
+    //     console.log(signatureData);
+    // }
+
 
     document.getElementById("reset-button").addEventListener("click", clearSignature);
     document.getElementById("submit-button").addEventListener("click", sendSignature);
 
     document.addEventListener("DOMContentLoaded", setupSignature);
 </script>
-<a href="/anamnesebogen">Submit another message</a>
+<script src="./static/app.js"></script>
 </body>
 </html>
