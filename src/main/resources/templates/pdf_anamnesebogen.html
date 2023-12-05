@@ -12,60 +12,64 @@
 
     <div>
         <div>
-            <h5 th:text="${patient.lastName}" id="lastname"></h5>
+            <h5 th:text="${minorPatient.lastName}" id="lastname"></h5>
             <label for="lastname"></label>
         </div>
 
         <div>
-            <h3 type="text" th:text="${patient.firstName}" id="firstname"></h3>
+            <h3 type="text" th:text="${minorPatient.firstName}" id="firstname"></h3>
             <label for="firstname"></label>
         </div>
     </div>
     <!--birthday + gender-->
     <div>
         <div>
-            <label for="patient-birth-date">geboren am:</label>
-            <h3 th:text="${patient.birthDate}" id="patient-birth-date"></h3>
+            <label for="minorPatient-birth-date">geboren am:</label>
+            <h3 th:text="${minorPatient.birthDate}" id="minorPatient-birth-date"></h3>
         </div>
         <!--gender radio buttons-->
         <div class="form-check form-check-inline ml-5">
-            <h3 type="radio" th:text="${patient.gender}" id="weiblich-radio"></h3>
+            <h3 type="radio" th:text="${minorPatient.gender}" id="weiblich-radio"></h3>
             <label for="weiblich-radio"></label>
         </div>
     </div>
     <!--address-->
     <div>
         <div>
-            <h3 th:text="${patient.street}" id="street"/>
+            <h3 th:text="${minorPatient.street}" id="street"/>
             <label for="street"></label>
         </div>
         <div>
-            <h3 th:text="${patient.zipCode}" id="zipcode"/>
+            <h3 th:text="${minorPatient.zipCode}" id="zipcode"/>
             <label for="zipcode"></label>
         </div>
         <div>
-            <h3 th:text="${patient.city}" id="city"/>
+            <h3 th:text="${minorPatient.city}" id="city"/>
             <label for="city"></label>
         </div>
     </div>
     <!--telefon numbers-->
     <div>
         <div>
-            <h3 th:text="${patient.phoneNumber}" id="phone-number"></h3>
+            <h3 th:text="${minorPatient.phoneNumber}" id="phone-number"></h3>
             <label for="phone-number"></label>
         </div>
         <div>
-            <h3 th:text="${patient.mobileNumber}" id="telefon-number"/>
+            <h3 th:text="${minorPatient.mobileNumber}" id="telefon-number"/>
             <label for="telefon-number"></label>
         </div>
     </div>
 
     <div>
         <div>
-            <h3 th:text="${patient.emailAddress}" id="email"/>
+            <h3 th:text="${minorPatient.emailAddress}" id="email"/>
             <label for="email"></label>
         </div>
     </div>
 
+    <img src="" id="signature-pdf"  alt=""/>
+
+
+    <script src="./static/app.js"></script>
 </body>
 </html>

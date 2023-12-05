@@ -8,7 +8,7 @@ import lombok.*;
 
 @Data
 @RequiredArgsConstructor
-public class Patient {
+public class MinorPatient {
 
     @NotNull
     private String lastName;
@@ -22,4 +22,6 @@ public class Patient {
     private String mobileNumber;
     private String phoneNumber;
     private String emailAddress;
+    private String signatureUri;
+    private MainInsuranceParent mainInsuranceParent;
 }

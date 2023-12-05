@@ -1,7 +1,7 @@
 package de.elias.moualem.Aufnahmebogen.controller;
 
 import com.lowagie.text.DocumentException;
-import de.elias.moualem.Aufnahmebogen.model.Patient;
+import de.elias.moualem.Aufnahmebogen.model.MinorPatient;
 import de.elias.moualem.Aufnahmebogen.service.PdfService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -25,14 +25,14 @@ public class AnamnesebogenController {
 
     @GetMapping("/anamnesebogen")
     public String anamnesebogen(Model model) {
-        model.addAttribute("patient", new Patient());
+        model.addAttribute("minorPatient", new MinorPatient());
         return "anamnesebogen";
     }
 
     @GetMapping("/pdf")
-    public void createAndStorePDF(HttpServletResponse response, @Valid Patient patient) {
+    public void createAndStorePDF(HttpServletResponse response, @Valid MinorPatient minorPatient) {
         try {
-            Path file = Paths.get(pdfService.generatePdf(patient).getAbsolutePath());
+            Path file = Paths.get(pdfService.generatePdf(minorPatient).getAbsolutePath());
             if (Files.exists(file)) {
                 response.setContentType("application/pdf");
                 response.addHeader("Content-Disposition",

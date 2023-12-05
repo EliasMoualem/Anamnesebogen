@@ -1,7 +1,7 @@
 package de.elias.moualem.Aufnahmebogen.service;
 
 import com.lowagie.text.DocumentException;
-import de.elias.moualem.Aufnahmebogen.model.Patient;
+import de.elias.moualem.Aufnahmebogen.model.MinorPatient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
@@ -20,8 +20,8 @@ public class PdfService {
     //private static final String PDF_RESOURCES = "/pdf-resources/";
     private final SpringTemplateEngine templateEngine;
 
-    public File generatePdf(Patient patient) throws IOException, DocumentException {
-        Context context = getContext(patient);
+    public File generatePdf(MinorPatient minorPatient) throws IOException, DocumentException {
+        Context context = getContext(minorPatient);
         String html = loadAndFillTemplate(context);
         return renderPdf(html);
     }
@@ -39,9 +39,9 @@ public class PdfService {
         return file;
     }
 
-    private Context getContext(Patient patient) {
+    private Context getContext(MinorPatient minorPatient) {
         Context context = new Context();
-        context.setVariable("patient", patient);
+        context.setVariable("minorPatient", minorPatient);
         return context;
     }
 
