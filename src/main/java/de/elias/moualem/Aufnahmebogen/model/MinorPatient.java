@@ -22,6 +22,5 @@ public class MinorPatient {
     private String mobileNumber;
     private String phoneNumber;
     private String emailAddress;
-    private String signatureUri;
     private MainInsuranceParent mainInsuranceParent;
 }

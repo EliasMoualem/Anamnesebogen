@@ -22,4 +22,5 @@ public class MainInsuranceParent {
     private String phoneNumber;
     private String emailAddress;
     private String job;
+    private String signatureUri;
 }
