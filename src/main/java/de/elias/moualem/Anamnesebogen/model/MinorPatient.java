@@ -1,13 +1,14 @@
-package de.elias.moualem.Aufnahmebogen.model;
+package de.elias.moualem.Anamnesebogen.model;
 
 import jakarta.validation.constraints.NotEmpty;
+
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
+
 
 @Data
 @RequiredArgsConstructor
-public class MainInsuranceParent {
+public class MinorPatient {
 
     @NotNull
     private String lastName;
@@ -21,6 +22,5 @@ public class MainInsuranceParent {
     private String mobileNumber;
     private String phoneNumber;
     private String emailAddress;
-    private String job;
-    private String signatureUri;
+    private MainInsuranceParent mainInsuranceParent;
 }

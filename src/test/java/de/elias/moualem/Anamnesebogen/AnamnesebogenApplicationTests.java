@@ -1,4 +1,4 @@
-package de.elias.moualem.Aufnahmebogen;
+package de.elias.moualem.Anamnesebogen;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

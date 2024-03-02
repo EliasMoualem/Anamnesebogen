@@ -1,4 +1,4 @@
-package de.elias.moualem.Aufnahmebogen;
+package de.elias.moualem.Anamnesebogen;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

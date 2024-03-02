@@ -1,8 +1,9 @@
-package de.elias.moualem.Aufnahmebogen.controller;
+package de.elias.moualem.Anamnesebogen.controller;
 
 import com.lowagie.text.DocumentException;
-import de.elias.moualem.Aufnahmebogen.model.MinorPatient;
-import de.elias.moualem.Aufnahmebogen.service.PdfService;
+import de.elias.moualem.Anamnesebogen.model.MinorPatient;
+import de.elias.moualem.Anamnesebogen.service.PdfService;
+import io.micrometer.core.annotation.Timed;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.nio.file.Paths;
 
 @Controller
 @Slf4j
+@Timed
 @RequiredArgsConstructor
 public class AnamnesebogenController {
 

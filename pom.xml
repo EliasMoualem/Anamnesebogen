@@ -11,7 +11,7 @@
 	<groupId>de.elias.moualem</groupId>
 	<artifactId>Anamnesebogen</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Aufnahmebogen</name>
+	<name>Anamnesebogen</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>21</java.version>
@@ -49,6 +49,19 @@
 			<groupId>org.thymeleaf</groupId>
 			<artifactId>thymeleaf-spring6</artifactId>
 			<version>3.1.2.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.micronaut.micrometer</groupId>
+			<artifactId>micronaut-micrometer-registry-prometheus</artifactId>
+			<version>5.3.0</version>
 		</dependency>
 	</dependencies>
 

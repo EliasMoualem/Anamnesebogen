@@ -1,4 +1,4 @@
-package de.elias.moualem.Aufnahmebogen.config;
+package de.elias.moualem.Anamnesebogen.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

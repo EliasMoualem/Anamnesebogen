@@ -1,7 +1,8 @@
-package de.elias.moualem.Aufnahmebogen.service;
+package de.elias.moualem.Anamnesebogen.service;
 
 import com.lowagie.text.DocumentException;
-import de.elias.moualem.Aufnahmebogen.model.MinorPatient;
+import de.elias.moualem.Anamnesebogen.model.MinorPatient;
+import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
@@ -15,6 +16,7 @@ import java.io.OutputStream;
 
 @Service
 @RequiredArgsConstructor
+@Timed
 public class PdfService {
 
     //private static final String PDF_RESOURCES = "/pdf-resources/";
