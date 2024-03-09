@@ -32,7 +32,7 @@ public class AnamnesebogenController {
     }
 
     @GetMapping("/pdf")
-    public void createAndStorePDF(HttpServletResponse response, @Valid MinorPatient minorPatient) {
+    public void createAndStorePDF(HttpServletResponse response, MinorPatient minorPatient) {
         try {
             Path file = Paths.get(pdfService.generatePdf(minorPatient).getAbsolutePath());
             if (Files.exists(file)) {
