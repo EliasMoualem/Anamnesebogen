@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MailRequestDTO {
+public class MailRequest {
 
     @JsonAlias(value = "to_email")
     private String toEmail;
