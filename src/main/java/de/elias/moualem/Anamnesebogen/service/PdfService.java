@@ -1,53 +1,123 @@
 package de.elias.moualem.Anamnesebogen.service;
 
-import com.lowagie.text.DocumentException;
 import de.elias.moualem.Anamnesebogen.model.MinorPatient;
-import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import java.util.Base64;
+import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
-@Timed
 public class PdfService {
 
-    //private static final String PDF_RESOURCES = "/pdf-resources/";
-    private final SpringTemplateEngine templateEngine;
+    private final TemplateEngine templateEngine;
 
-    public File generatePdf(MinorPatient minorPatient) throws IOException, DocumentException {
-        Context context = getContext(minorPatient);
-        String html = loadAndFillTemplate(context);
-        return renderPdf(html);
+    /**
+     * Format gender string for display
+     * This is now a static utility method that can be called from Thymeleaf
+     */
+    public static String formatGender(String gender) {
+        if (gender == null || gender.trim().isEmpty()) return "-";
+
+        return switch(gender) {
+            case "male" -> "Männlich";
+            case "female" -> "Weiblich";
+            case "diverse" -> "Divers";
+            default -> gender;
+        };
     }
 
-    private File renderPdf(String html) throws IOException, DocumentException {
-        //String fileName = patient.getLastName() + ", " + patient.getFirstName() + " Anamnesebogen";
-        File file = File.createTempFile("Anamnesebogen", ".pdf");
-        OutputStream outputStream = new FileOutputStream(file);
-        ITextRenderer renderer = new ITextRenderer(20f * 4f / 3f, 20);
-        renderer.setDocumentFromString(html);
-        renderer.layout();
-        renderer.createPDF(outputStream);
-        outputStream.close();
-        file.deleteOnExit();
-        return file;
+    /**
+     * Generate PDF file for a patient's anamnesis data.
+     *
+     * @param patient The patient data to generate PDF for
+     * @return File object of the generated PDF
+     * @throws Exception If PDF generation fails
+     */
+    public File generatePdf(MinorPatient patient) throws Exception {
+        // Create temporary file
+        Path tempFile = Files.createTempFile("anamnese_", ".pdf");
+        File pdfFile = tempFile.toFile();
+
+        // Process HTML template
+        String processedHtml = processTemplate(patient);
+
+        // Convert HTML to PDF
+        try (FileOutputStream outputStream = new FileOutputStream(pdfFile)) {
+            ITextRenderer renderer = new ITextRenderer();
+            renderer.setDocumentFromString(processedHtml);
+            renderer.layout();
+            renderer.createPDF(outputStream);
+        }
+
+        log.info("PDF generated: {}", pdfFile.getAbsolutePath());
+        return pdfFile;
     }
 
-    private Context getContext(MinorPatient minorPatient) {
+    /**
+     * Generate PDF for patient and write it to the provided HttpServletResponse.
+     * This method does not perform any application-level redirects; it throws
+     * exceptions which the caller (controller) should handle and translate into
+     * user-facing redirects if needed.
+     *
+     * @param minorPatient patient data used to generate the PDF
+     * @param response HTTP response to write the resulting PDF to
+     * @throws Exception when PDF creation or IO fails
+     */
+    public void generateAndServePdf(MinorPatient minorPatient, HttpServletResponse response) throws Exception {
+        // Use existing generatePdf implementation
+        File pdfFile = generatePdf(minorPatient);
+        Path file = pdfFile.toPath();
+
+        if (Files.exists(file)) {
+            // Set response headers
+            response.setContentType("application/pdf");
+            response.addHeader("Content-Disposition",
+                    "attachment; filename=Anamnesebogen_" + (minorPatient.getFirstName() != null ? minorPatient.getFirstName() : "patient") + ".pdf");
+
+            // Copy file to response output stream
+            Files.copy(file, response.getOutputStream());
+            response.getOutputStream().flush();
+
+            log.info("PDF written to response: {}", file);
+        } else {
+            log.error("Generated PDF file does not exist: {}", file);
+            throw new java.io.IOException("Generated PDF file not found: " + file);
+        }
+    }
+
+    /**
+     * Process Thymeleaf template with patient data
+     *
+     * @param patient The patient data to use in template
+     * @return Processed HTML string
+     */
+    private String processTemplate(MinorPatient patient) {
+        // Create Thymeleaf context and add patient data
         Context context = new Context();
-        context.setVariable("minorPatient", minorPatient);
-        return context;
-    }
+        context.setVariable("minorPatient", patient);
 
-    private String loadAndFillTemplate(Context context) {
+        // If signature exists, convert it to base64 for embedding in HTML
+        if (patient.hasSignature()) {
+            try {
+                String base64Signature = Base64.getEncoder().encodeToString(patient.getSignature());
+                context.setVariable("signatureImage", base64Signature);
+            } catch (Exception e) {
+                log.error("Error processing signature for PDF", e);
+            }
+        }
+
+        // Process template with context
         return templateEngine.process("pdf_anamnesebogen", context);
     }
 }

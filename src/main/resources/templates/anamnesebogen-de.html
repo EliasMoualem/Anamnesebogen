@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anamnesebogen</title>
+    <!-- jQuery UI CSS for datepicker -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .signature-container {
+            border: 1px solid #ddd;
+            margin-top: 10px;
+            max-width: 500px;
+        }
+
+        #signature-pad {
+            width: 100%;
+            height: 120px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .buttons {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 5px;
+        }
+
+        button[type="submit"],
+        button.next-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        button.prev-button {
+            background-color: #607D8B;
+            color: white;
+        }
+
+        button#reset-button {
+            background-color: #f44336;
+            color: white;
+        }
+
+        button#reset-form-button {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .error-message {
+            color: #f44336;
+            background-color: #ffebee;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        /* Datepicker styling */
+        .ui-datepicker {
+            font-size: 14px;
+        }
+
+        .hasDatepicker {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>');
+            background-repeat: no-repeat;
+            background-position: calc(100% - 8px) center;
+            background-size: 16px;
+            padding-right: 30px; /* Make room for the calendar icon */
+        }
+
+        /* Step indicator styles */
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #ddd;
+            z-index: 1;
+        }
+
+        .step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #fff;
+            position: relative;
+            z-index: 2;
+        }
+
+        .step.active {
+            background-color: #4CAF50;
+        }
+
+        .step.completed {
+            background-color: #4CAF50;
+        }
+
+        .step-content {
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <!-- jQuery and jQuery UI for datepicker -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>Anamnesebogen</h1>
+
+    <!-- Error message display -->
+    <div class="error-message" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
+
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+        <div class="step active" data-step="1">1</div>
+        <div class="step" data-step="2">2</div>
+        <div class="step" data-step="3">3</div>
+        <div class="step" data-step="4">4</div>
+    </div>
+
+    <form id="patient-form" th:action="@{/submit-anamnesebogen}" th:object="${minorPatient}" method="post">
+        <!-- Include the language parameter -->
+        <input type="hidden" th:name="lang" th:value="${lang}" />
+
+        <!-- Step 1: Personal Data -->
+        <div id="step-1" class="step-content active">
+            <div class="section">
+                <h2>Persönliche Daten</h2>
+                <div class="form-group">
+                    <label for="firstName">Vorname</label>
+                    <input type="text" id="firstName" th:field="*{firstName}" required>
+                </div>
+                <div class="form-group">
+                    <label for="lastName">Nachname</label>
+                    <input type="text" id="lastName" th:field="*{lastName}" required>
+                </div>
+                <div class="form-group">
+                    <label for="birthDate">Geburtsdatum</label>
+                    <input type="text" id="birthDate" th:field="*{birthDate}" class="datepicker" placeholder="TT.MM.JJJJ" required>
+                </div>
+                <div class="form-group">
+                    <label for="gender">Geschlecht</label>
+                    <select id="gender" th:field="*{gender}" required>
+                        <option value="">Bitte wählen</option>
+                        <option value="male">Männlich</option>
+                        <option value="female">Weiblich</option>
+                        <option value="diverse">Divers</option>
+                    </select>
+                </div>
+            </div>
+            <div class="buttons">
+                <button type="button" class="next-button" data-step="1">Weiter</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Address -->
+        <div id="step-2" class="step-content">
+            <div class="section">
+                <h2>Adresse</h2>
+                <div class="form-group">
+                    <label for="street">Straße und Hausnummer</label>
+                    <input type="text" id="street" th:field="*{street}">
+                </div>
+                <div class="form-group">
+                    <label for="zipCode">PLZ</label>
+                    <input type="text" id="zipCode" th:field="*{zipCode}">
+                </div>
+                <div class="form-group">
+                    <label for="city">Ort</label>
+                    <input type="text" id="city" th:field="*{city}">
+                </div>
+            </div>
+            <div class="buttons">
+                <button type="button" class="prev-button" data-step="2">Zurück</button>
+                <button type="button" class="next-button" data-step="2">Weiter</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Contact -->
+        <div id="step-3" class="step-content">
+            <div class="section">
+                <h2>Kontakt</h2>
+                <div class="form-group">
+                    <label for="mobileNumber">Mobilnummer</label>
+                    <input type="tel" id="mobileNumber" th:field="*{mobileNumber}">
+                </div>
+                <div class="form-group">
+                    <label for="phoneNumber">Telefon</label>
+                    <input type="tel" id="phoneNumber" th:field="*{phoneNumber}">
+                </div>
+                <div class="form-group">
+                    <label for="emailAddress">E-Mail</label>
+                    <input type="email" id="emailAddress" th:field="*{emailAddress}">
+                </div>
+            </div>
+            <div class="buttons">
+                <button type="button" class="prev-button" data-step="3">Zurück</button>
+                <button type="button" class="next-button" data-step="3">Weiter</button>
+            </div>
+        </div>
+
+        <!-- Step 4: Signature and Submit -->
+        <div id="step-4" class="step-content">
+            <div class="section">
+                <h2>Unterschrift</h2>
+                <p>Bitte unterschreiben Sie hier:</p>
+                <div class="signature-container">
+                    <canvas id="signature-pad"></canvas>
+                </div>
+                <div>
+                    <button type="button" id="reset-button">Unterschrift löschen</button>
+                </div>
+            </div>
+            <div class="buttons">
+                <button type="button" class="prev-button" data-step="4">Zurück</button>
+                <button type="submit">Formular absenden</button>
+                <button type="button" id="reset-form-button">Formular zurücksetzen</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    let signaturePad;
+    let currentStep = 1;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Initialize datepicker
+        $(".datepicker").datepicker({
+            dateFormat: 'dd.mm.yy',  // German date format (day.month.year)
+            changeMonth: true,
+            changeYear: true,
+            yearRange: "-100:+0",    // Allow selecting dates from 100 years ago until today
+            monthNames: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+                'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+            monthNamesShort: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun',
+                'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+            dayNames: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+            dayNamesShort: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+            dayNamesMin: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+            firstDay: 1,             // Start week on Monday (0 = Sunday, 1 = Monday)
+            showWeek: true,          // Show week numbers (common in German-speaking countries)
+            weekHeader: 'KW'         // Header for week column (short for "Kalenderwoche")
+        });
+
+        // Initialize signature pad (only when step 4 is visible)
+        function initSignaturePad() {
+            if (!signaturePad) {
+                const canvas = document.getElementById("signature-pad");
+                signaturePad = new SignaturePad(canvas, {
+                    minWidth: 1,
+                    maxWidth: 2.5, // Reduced max width for signature line
+                    backgroundColor: 'rgb(255, 255, 255)',
+                    penColor: 'rgb(0, 0, 0)'
+                });
+
+                // Resize canvas to fill its container
+                resizeCanvas();
+            }
+        }
+
+        function resizeCanvas() {
+            const canvas = document.getElementById("signature-pad");
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            if (signaturePad) {
+                signaturePad.clear(); // otherwise isEmpty() might return incorrect value
+            }
+        }
+
+        window.addEventListener("resize", function() {
+            if (currentStep === 4) resizeCanvas();
+        });
+
+        // Handle navigation between steps
+        document.querySelectorAll('.next-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const step = parseInt(this.getAttribute('data-step'));
+
+                // Validation for step 1
+                if (step === 1) {
+                    const firstName = document.getElementById('firstName').value;
+                    const lastName = document.getElementById('lastName').value;
+                    const birthDate = document.getElementById('birthDate').value;
+                    const gender = document.getElementById('gender').value;
+
+                    if (!firstName || !lastName || !birthDate || !gender) {
+                        alert('Bitte füllen Sie alle Pflichtfelder aus.');
+                        return;
+                    }
+                }
+
+                // Hide current step
+                document.getElementById(`step-${step}`).classList.remove('active');
+
+                // Show next step
+                const nextStep = step + 1;
+                document.getElementById(`step-${nextStep}`).classList.add('active');
+
+                // Update step indicator
+                document.querySelector(`.step[data-step="${step}"]`).classList.add('completed');
+                document.querySelector(`.step[data-step="${nextStep}"]`).classList.add('active');
+
+                // Update current step
+                currentStep = nextStep;
+
+                // Initialize signature pad on step 4
+                if (nextStep === 4) {
+                    initSignaturePad();
+                }
+            });
+        });
+
+        document.querySelectorAll('.prev-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const step = parseInt(this.getAttribute('data-step'));
+
+                // Hide current step
+                document.getElementById(`step-${step}`).classList.remove('active');
+
+                // Show previous step
+                const prevStep = step - 1;
+                document.getElementById(`step-${prevStep}`).classList.add('active');
+
+                // Update step indicators - fix for back button
+                document.querySelector(`.step[data-step="${step}"]`).classList.remove('active');
+                document.querySelector(`.step[data-step="${step}"]`).classList.remove('completed');
+                document.querySelector(`.step[data-step="${prevStep}"]`).classList.add('active');
+
+                // Update current step
+                currentStep = prevStep;
+            });
+        });
+
+        // Reset signature button
+        document.getElementById("reset-button").addEventListener("click", function() {
+            if (signaturePad) signaturePad.clear();
+        });
+
+        // Reset entire form button
+        document.getElementById("reset-form-button").addEventListener("click", function() {
+            // Reset all form fields
+            document.getElementById("patient-form").reset();
+
+            // Clear signature pad
+            if (signaturePad) signaturePad.clear();
+
+            // Go back to step 1
+            document.querySelectorAll('.step-content').forEach(step => {
+                step.classList.remove('active');
+            });
+            document.getElementById('step-1').classList.add('active');
+
+            // Reset step indicators
+            document.querySelectorAll('.step').forEach(indicator => {
+                indicator.classList.remove('active');
+                indicator.classList.remove('completed');
+            });
+            document.querySelector('.step[data-step="1"]').classList.add('active');
+
+            // Update current step
+            currentStep = 1;
+
+            console.log("Form has been reset");
+        });
+
+        // Form submission
+        document.getElementById("patient-form").addEventListener("submit", function(event) {
+            // Validate required fields on the current page
+            if (currentStep === 1) {
+                const firstName = document.getElementById('firstName').value;
+                const lastName = document.getElementById('lastName').value;
+                const birthDate = document.getElementById('birthDate').value;
+                const gender = document.getElementById('gender').value;
+
+                if (!firstName || !lastName || !birthDate || !gender) {
+                    event.preventDefault();
+                    alert('Bitte füllen Sie alle Pflichtfelder aus.');
+                    return;
+                }
+            }
+
+            // Add signature data if available
+            if (signaturePad && !signaturePad.isEmpty()) {
+                console.log("Signature captured, adding to form...");
+
+                // Get signature data - using lower quality to reduce size
+                const signatureData = signaturePad.toDataURL('image/png', 1);
+
+                // Log the first 20 characters (for debugging)
+                console.log("Signature data (first 20 chars): " + signatureData.substring(0, 20) + "...");
+
+                // Create hidden input for signature data
+                let signatureInput = document.createElement("input");
+                signatureInput.type = "hidden";
+                signatureInput.name = "signatureData";
+                signatureInput.value = signatureData;
+
+                // Add to form
+                this.appendChild(signatureInput);
+            } else {
+                console.log("No signature provided");
+            }
+
+            console.log("Form submitted");
+        });
+    });
+</script>
+</body>
+</html>
