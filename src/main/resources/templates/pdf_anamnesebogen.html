@@ -1,75 +1,194 @@
-<!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org" lang="de">
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Anamnesebogen</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
-          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"/>
+    <meta charset="UTF-8"></meta>
+    <style>
+        :root {
+            --primary-color: #407BFF;
+            --secondary-color: #F2F2F2;
+            --text-color: #333333;
+            --light-text: #666666;
+            --border-color: #DDDDDD;
+            --section-spacing: 30px;
+            --field-spacing: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.5;
+            color: var(--text-color);
+            margin: 0;
+            padding: 50px;
+            background-color: white;
+        }
+
+        /* Header section */
+        .header {
+            text-align: center;
+            margin-bottom: var(--section-spacing);
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 28px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        /* Section styling */
+        .section {
+            margin-bottom: var(--section-spacing);
+        }
+
+        .section h2 {
+            color: var(--primary-color);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--secondary-color);
+        }
+
+        /* Field styling */
+        .field {
+            display: flex;
+            margin-bottom: var(--field-spacing);
+            padding-left: 10px;
+        }
+
+        .label {
+            color: var(--light-text);
+            font-size: 14px;
+            min-width: 120px;
+            margin-right: 15px;
+        }
+
+        .value {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-color);
+            flex: 1;
+        }
+
+        /* Signature area */
+        .signature-area {
+            margin-top: 40px;
+        }
+
+        .signature-area h3 {
+            color: var(--primary-color);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--secondary-color);
+        }
+
+        .signature {
+            display: block;
+            max-width: 300px;
+            margin: 20px auto;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+            color: var(--light-text);
+            font-size: 12px;
+            text-align: right;
+        }
+
+        /* Empty value handling */
+        .empty-value {
+            color: #aaa;
+            font-style: italic;
+        }
+    </style>
 </head>
-
 <body>
-    <img class="logo" src="https://kfo-rostock.de/wp-content/uploads/2022/08/logo3-.png" height="100" width="200"
-         alt="logo"/>
+<div class="header">
+    <h1>Anamnesebogen</h1>
+    <div>Patienteninformationen</div>
+</div>
 
-    <div>
-        <div>
-            <h5 th:text="${minorPatient.lastName}" id="lastname"></h5>
-            <label for="lastname"></label>
-        </div>
+<div class="section">
+    <h2>Persönliche Daten</h2>
+    <div class="field">
+        <span class="label">Vorname:</span>
+        <span class="value" th:text="${minorPatient.firstName != null and !minorPatient.firstName.isEmpty() ? minorPatient.firstName : '-'}">-</span>
+    </div>
+    <div class="field">
+        <span class="label">Nachname:</span>
+        <span class="value" th:text="${minorPatient.lastName != null and !minorPatient.lastName.isEmpty() ? minorPatient.lastName : '-'}">-</span>
+    </div>
+    <div class="field">
+        <span class="label">Geburtsdatum:</span>
+        <span class="value" th:text="${minorPatient.birthDate != null and !minorPatient.birthDate.isEmpty() ? minorPatient.birthDate : '-'}">-</span>
+    </div>
+    <div class="field">
+        <span class="label">Geschlecht:</span>
+        <span class="value" th:text="${T(de.elias.moualem.Anamnesebogen.service.PdfService).formatGender(minorPatient.gender)}">-</span>
+    </div>
+</div>
 
-        <div>
-            <h3 type="text" th:text="${minorPatient.firstName}" id="firstname"></h3>
-            <label for="firstname"></label>
-        </div>
+<div class="section">
+    <h2>Adresse</h2>
+    <div class="field">
+        <span class="label">Straße:</span>
+        <span class="value" th:text="${minorPatient.street != null and !minorPatient.street.isEmpty() ? minorPatient.street : '-'}">-</span>
     </div>
-    <!--birthday + gender-->
-    <div>
-        <div>
-            <label for="minorPatient-birth-date">geboren am:</label>
-            <h3 th:text="${minorPatient.birthDate}" id="minorPatient-birth-date"></h3>
-        </div>
-        <!--gender radio buttons-->
-        <div class="form-check form-check-inline ml-5">
-            <h3 type="radio" th:text="${minorPatient.gender}" id="weiblich-radio"></h3>
-            <label for="weiblich-radio"></label>
-        </div>
+    <div class="field">
+        <span class="label">PLZ:</span>
+        <span class="value" th:text="${minorPatient.zipCode != null and !minorPatient.zipCode.isEmpty() ? minorPatient.zipCode : '-'}">-</span>
     </div>
-    <!--address-->
-    <div>
-        <div>
-            <h3 th:text="${minorPatient.street}" id="street"/>
-            <label for="street"></label>
-        </div>
-        <div>
-            <h3 th:text="${minorPatient.zipCode}" id="zipcode"/>
-            <label for="zipcode"></label>
-        </div>
-        <div>
-            <h3 th:text="${minorPatient.city}" id="city"/>
-            <label for="city"></label>
-        </div>
+    <div class="field">
+        <span class="label">Ort:</span>
+        <span class="value" th:text="${minorPatient.city != null and !minorPatient.city.isEmpty() ? minorPatient.city : '-'}">-</span>
     </div>
-    <!--telefon numbers-->
-    <div>
-        <div>
-            <h3 th:text="${minorPatient.phoneNumber}" id="phone-number"></h3>
-            <label for="phone-number"></label>
-        </div>
-        <div>
-            <h3 th:text="${minorPatient.mobileNumber}" id="telefon-number"/>
-            <label for="telefon-number"></label>
-        </div>
-    </div>
+</div>
 
-    <div>
-        <div>
-            <h3 th:text="${minorPatient.emailAddress}" id="email"/>
-            <label for="email"></label>
-        </div>
+<div class="section">
+    <h2>Kontakt</h2>
+    <div class="field">
+        <span class="label">Mobilnummer:</span>
+        <span class="value" th:text="${minorPatient.mobileNumber != null and !minorPatient.mobileNumber.isEmpty() ? minorPatient.mobileNumber : '-'}">-</span>
     </div>
-    <div>
-
+    <div class="field">
+        <span class="label">Telefon:</span>
+        <span class="value" th:text="${minorPatient.phoneNumber != null and !minorPatient.phoneNumber.isEmpty() ? minorPatient.phoneNumber : '-'}">-</span>
     </div>
+    <div class="field">
+        <span class="label">E-Mail:</span>
+        <span class="value" th:text="${minorPatient.emailAddress != null and !minorPatient.emailAddress.isEmpty() ? minorPatient.emailAddress : '-'}">-</span>
+    </div>
+</div>
 
-    <script th:src="@{index.js}"></script>
+<div class="signature-area">
+    <h3>Unterschrift</h3>
+    <!-- Check if signature image exists and display it -->
+    <div th:if="${signatureImage != null}">
+        <img th:src="@{'data:image/png;base64,' + ${signatureImage}}" alt="Unterschrift" class="signature" />
+    </div>
+    <div th:if="${signatureImage == null}">
+        <p class="empty-value">Keine Unterschrift vorhanden.</p>
+    </div>
+</div>
+
+<div class="footer">
+    <p>Formular erstellt am: <span th:text="${#temporals.format(#temporals.createNow(), 'dd.MM.yyyy HH:mm')}">01.01.2025 12:00</span></p>
+</div>
 </body>
 </html>

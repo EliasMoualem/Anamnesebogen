@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>PDF Ready</title>
+</head>
+<body>
+<h1>Your PDF is ready!</h1>
+<p>Click the button below to download your PDF.</p>
+<a th:href="@{/downloadPdf(pdfPath=${pdfPath}, patientName=${patientName})}" class="btn btn-primary">Download PDF</a>
+</body>
+</html>
