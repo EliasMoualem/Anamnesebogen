@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 
@@ -12,6 +13,7 @@ import java.io.Serializable;
 @RequiredArgsConstructor
 public class MinorPatient implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     // Personal Information
