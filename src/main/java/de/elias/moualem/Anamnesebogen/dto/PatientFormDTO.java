@@ -1,17 +1,26 @@
-package de.elias.moualem.Anamnesebogen.model;
+package de.elias.moualem.Anamnesebogen.dto;
 
 import jakarta.validation.constraints.NotEmpty;
-
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
-
+/**
+ * DTO for patient anamnesis form data binding.
+ *
+ * This DTO is used for binding form data from all patients (both minor and adult).
+ * The name "PatientFormDTO" reflects its purpose: binding web form input.
+ *
+ * Previously named "MinorPatient" (confusing since it handles all patients, not just minors).
+ */
 @Data
 @RequiredArgsConstructor
-public class MinorPatient implements Serializable {
+public class PatientFormDTO implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -31,10 +40,16 @@ public class MinorPatient implements Serializable {
     private String phoneNumber;
     private String emailAddress;
     private byte[] signature;
+    private UUID signatureId;
+    private LocalDateTime signatureTimestamp;
     private String language;
-    private MainInsuranceParent mainInsuranceParent;
+
+    // Guardian/Policyholder information
+    private GuardianDTO guardian; // Legal guardian for minor patients (under 18)
+    private PolicyholderDTO policyholder; // Policyholder for family-insured patients
 
     // Insurance Information
+    private String insuranceType; // SELF_INSURED or FAMILY_INSURED (auto-set by frontend based on age)
     private String insuranceProvider;
     private String insurancePolicyNumber;
     private String insuranceGroupNumber;

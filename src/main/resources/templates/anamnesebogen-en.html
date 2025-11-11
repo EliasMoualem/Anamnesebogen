@@ -170,6 +170,40 @@
         .step-content.active {
             display: block;
         }
+
+        /* Guardian section styles */
+        .guardian-section {
+            display: none;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .guardian-section.visible {
+            display: block;
+        }
+
+        .guardian-section h3 {
+            color: #4CAF50;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .info-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+        .info-box p {
+            margin: 0;
+            font-size: 14px;
+            color: #1976d2;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <!-- jQuery and jQuery UI for datepicker -->
@@ -191,7 +225,7 @@
         <div class="step" data-step="4">4</div>
     </div>
 
-    <form id="patient-form" th:action="@{/submit-anamnesebogen}" th:object="${minorPatient}" method="post">
+    <form id="patient-form" th:action="@{/submit-anamnesebogen}" th:object="${patientForm}" method="post">
         <!-- Include the language parameter -->
         <input type="hidden" name="lang" value="en" />
 
@@ -266,6 +300,127 @@
                     <input type="email" id="emailAddress" th:field="*{emailAddress}">
                 </div>
             </div>
+
+            <!-- Insurance Section -->
+            <div class="section" id="insurance-section" style="margin-top: 30px;">
+                <h2>Insurance Information</h2>
+
+                <!-- Hidden field for insurance type (set automatically based on age) -->
+                <input type="hidden" id="insuranceType" name="insuranceType" value="SELF_INSURED">
+
+                <div class="info-box" id="minor-insurance-info" style="display: none;">
+                    <p><strong>Note:</strong> Minor patients are automatically covered under family insurance. Please provide the primary policyholder's information.</p>
+                </div>
+            </div>
+
+            <!-- Guardian Section (shown only for minors under 18) -->
+            <div id="guardian-section" class="guardian-section">
+                <div class="info-box">
+                    <p><strong>Note:</strong> Since the patient is a minor (under 18 years), legal guardian information must be provided.</p>
+                </div>
+
+                <h3>Legal Guardian Information</h3>
+
+                <div class="form-group">
+                    <label for="guardian.relationshipType">Relationship *</label>
+                    <select id="guardian.relationshipType" th:field="*{guardian.relationshipType}" class="guardian-required">
+                        <option value="">Please select</option>
+                        <option value="MOTHER">Mother</option>
+                        <option value="FATHER">Father</option>
+                        <option value="LEGAL_GUARDIAN">Legal Guardian</option>
+                        <option value="GRANDPARENT">Grandparent</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="guardian.firstName">First Name *</label>
+                    <input type="text" id="guardian.firstName" th:field="*{guardian.firstName}" class="guardian-required">
+                </div>
+
+                <div class="form-group">
+                    <label for="guardian.lastName">Last Name *</label>
+                    <input type="text" id="guardian.lastName" th:field="*{guardian.lastName}" class="guardian-required">
+                </div>
+
+                <div class="form-group">
+                    <label for="guardian.birthDate">Date of Birth</label>
+                    <input type="text" id="guardian.birthDate" th:field="*{guardian.birthDate}" class="datepicker" placeholder="DD.MM.YYYY">
+                </div>
+
+                <div class="form-group">
+                    <label for="guardian.mobileNumber">Mobile Number *</label>
+                    <input type="tel" id="guardian.mobileNumber" th:field="*{guardian.mobileNumber}" class="guardian-required">
+                </div>
+
+                <div class="form-group">
+                    <label for="guardian.phoneNumber">Phone Number</label>
+                    <input type="tel" id="guardian.phoneNumber" th:field="*{guardian.phoneNumber}">
+                </div>
+
+                <div class="form-group">
+                    <label for="guardian.emailAddress">Email Address</label>
+                    <input type="email" id="guardian.emailAddress" th:field="*{guardian.emailAddress}">
+                </div>
+
+                <div class="form-group">
+                    <label for="guardian.street">Street and Number</label>
+                    <input type="text" id="guardian.street" th:field="*{guardian.street}">
+                </div>
+
+                <div class="form-group">
+                    <label for="guardian.zipCode">Postal Code</label>
+                    <input type="text" id="guardian.zipCode" th:field="*{guardian.zipCode}">
+                </div>
+
+                <div class="form-group">
+                    <label for="guardian.city">City</label>
+                    <input type="text" id="guardian.city" th:field="*{guardian.city}">
+                </div>
+            </div>
+
+            <!-- Policyholder Section (for family-insured patients, shown for all minors) -->
+            <div id="policyholder-section" class="guardian-section" style="border-left-color: #FF9800;">
+                <h3>Primary Policyholder (Family Insurance)</h3>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="sameAsGuardian">
+                        Policyholder is the legal guardian
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="policyholder.firstName">First Name *</label>
+                    <input type="text" id="policyholder.firstName" th:field="*{policyholder.firstName}" class="policyholder-required">
+                </div>
+
+                <div class="form-group">
+                    <label for="policyholder.lastName">Last Name *</label>
+                    <input type="text" id="policyholder.lastName" th:field="*{policyholder.lastName}" class="policyholder-required">
+                </div>
+
+                <div class="form-group">
+                    <label for="policyholder.birthDate">Date of Birth</label>
+                    <input type="text" id="policyholder.birthDate" th:field="*{policyholder.birthDate}" class="datepicker" placeholder="DD.MM.YYYY">
+                </div>
+
+                <div class="form-group">
+                    <label for="policyholder.mobileNumber">Mobile Number</label>
+                    <input type="tel" id="policyholder.mobileNumber" th:field="*{policyholder.mobileNumber}">
+                </div>
+
+                <div class="form-group">
+                    <label for="policyholder.phoneNumber">Phone Number</label>
+                    <input type="tel" id="policyholder.phoneNumber" th:field="*{policyholder.phoneNumber}">
+                </div>
+
+                <div class="form-group">
+                    <label for="policyholder.emailAddress">Email Address</label>
+                    <input type="email" id="policyholder.emailAddress" th:field="*{policyholder.emailAddress}">
+                </div>
+            </div>
+
             <div class="buttons">
                 <button type="button" class="prev-button" data-step="3">Previous</button>
                 <button type="button" class="next-button" data-step="3">Next</button>
@@ -305,6 +460,104 @@
             changeYear: true,
             yearRange: "-100:+0"
         });
+
+        // Age calculation and guardian section visibility
+        function calculateAge(birthDateString) {
+            if (!birthDateString) return null;
+
+            // Parse date format (dd.mm.yyyy)
+            const parts = birthDateString.split('.');
+            if (parts.length !== 3) return null;
+
+            const birthDate = new Date(parts[2], parts[1] - 1, parts[0]);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            return age;
+        }
+
+        function updateGuardianSection() {
+            const birthDateInput = document.getElementById('birthDate');
+            const guardianSection = document.getElementById('guardian-section');
+            const policyholderSection = document.getElementById('policyholder-section');
+            const insuranceTypeField = document.getElementById('insuranceType');
+            const minorInsuranceInfo = document.getElementById('minor-insurance-info');
+            const guardianFields = document.querySelectorAll('.guardian-required');
+            const policyholderFields = document.querySelectorAll('.policyholder-required');
+
+            const age = calculateAge(birthDateInput.value);
+
+            if (age !== null && age < 18) {
+                // Patient is a minor - show both guardian and policyholder sections
+                guardianSection.classList.add('visible');
+                policyholderSection.classList.add('visible');
+                minorInsuranceInfo.style.display = 'block';
+
+                // Set insurance type to FAMILY_INSURED for minors
+                insuranceTypeField.value = 'FAMILY_INSURED';
+
+                // Make fields required
+                guardianFields.forEach(field => {
+                    field.setAttribute('required', 'required');
+                });
+                policyholderFields.forEach(field => {
+                    field.setAttribute('required', 'required');
+                });
+                console.log('Patient is minor (age: ' + age + ') - guardian and policyholder sections shown');
+            } else {
+                // Patient is adult - hide sections and clear
+                guardianSection.classList.remove('visible');
+                policyholderSection.classList.remove('visible');
+                minorInsuranceInfo.style.display = 'none';
+
+                // Set insurance type to SELF_INSURED for adults
+                insuranceTypeField.value = 'SELF_INSURED';
+
+                // Remove required and clear fields
+                guardianFields.forEach(field => {
+                    field.removeAttribute('required');
+                    field.value = '';
+                });
+                policyholderFields.forEach(field => {
+                    field.removeAttribute('required');
+                    field.value = '';
+                });
+                document.getElementById('sameAsGuardian').checked = false;
+                console.log('Patient is adult (age: ' + age + ') - sections hidden');
+            }
+        }
+
+        // "Same as guardian" checkbox handler
+        document.getElementById('sameAsGuardian').addEventListener('change', function() {
+            if (this.checked) {
+                // Copy guardian data to policyholder fields
+                document.getElementById('policyholder.firstName').value =
+                    document.getElementById('guardian.firstName').value;
+                document.getElementById('policyholder.lastName').value =
+                    document.getElementById('guardian.lastName').value;
+                document.getElementById('policyholder.birthDate').value =
+                    document.getElementById('guardian.birthDate').value;
+                document.getElementById('policyholder.mobileNumber').value =
+                    document.getElementById('guardian.mobileNumber').value;
+                document.getElementById('policyholder.phoneNumber').value =
+                    document.getElementById('guardian.phoneNumber').value;
+                document.getElementById('policyholder.emailAddress').value =
+                    document.getElementById('guardian.emailAddress').value;
+
+                console.log('Policyholder data copied from guardian');
+            }
+        });
+
+        // Listen for birthdate changes
+        $('#birthDate').on('change', updateGuardianSection);
+
+        // Check on page load (in case form has pre-filled data)
+        updateGuardianSection();
 
         // Initialize signature pad (only when step 4 is visible)
         function initSignaturePad() {
@@ -352,6 +605,34 @@
                     if (!firstName || !lastName || !birthDate || !gender) {
                         alert('Please fill in all required fields.');
                         return;
+                    }
+                }
+
+                // Validation for step 3 (including guardian and policyholder if minor)
+                if (step === 3) {
+                    const guardianSection = document.getElementById('guardian-section');
+                    const policyholderSection = document.getElementById('policyholder-section');
+
+                    if (guardianSection.classList.contains('visible')) {
+                        // Validate guardian fields
+                        const guardianRelationship = document.getElementById('guardian.relationshipType').value;
+                        const guardianFirstName = document.getElementById('guardian.firstName').value;
+                        const guardianLastName = document.getElementById('guardian.lastName').value;
+                        const guardianMobile = document.getElementById('guardian.mobileNumber').value;
+
+                        if (!guardianRelationship || !guardianFirstName || !guardianLastName || !guardianMobile) {
+                            alert('Please fill in all required fields for the legal guardian (marked with *).');
+                            return;
+                        }
+
+                        // Validate policyholder fields
+                        const policyholderFirstName = document.getElementById('policyholder.firstName').value;
+                        const policyholderLastName = document.getElementById('policyholder.lastName').value;
+
+                        if (!policyholderFirstName || !policyholderLastName) {
+                            alert('Please fill in all required fields for the primary policyholder (marked with *).');
+                            return;
+                        }
                     }
                 }
 

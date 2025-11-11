@@ -1,9 +1,11 @@
 package de.elias.moualem.Anamnesebogen.controller;
 
 import com.lowagie.text.DocumentException;
-import de.elias.moualem.Anamnesebogen.model.MinorPatient;
+import de.elias.moualem.Anamnesebogen.dto.PatientFormDTO;
+import de.elias.moualem.Anamnesebogen.service.PatientService;
 import de.elias.moualem.Anamnesebogen.service.PdfService;
 import io.micrometer.core.annotation.Timed;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -32,12 +33,7 @@ import java.util.UUID;
 public class AnamnesebogenController {
 
     private final PdfService pdfService;
-
-    /**
-     * In-memory storage for temporary patient data.
-     * Data is removed after PDF generation.
-     */
-    private final Map<String, MinorPatient> patientStore = new HashMap<>();
+    private final PatientService patientService;
 
     /**
      * Displays the language selection page.
@@ -64,7 +60,7 @@ public class AnamnesebogenController {
             @RequestParam(value = "lang", defaultValue = "de") String lang) {
 
         // Add a new patient to the model
-        model.addAttribute("minorPatient", new MinorPatient());
+        model.addAttribute("patientForm", new PatientFormDTO());
 
         // Add the selected language to the model
         model.addAttribute("lang", lang);
@@ -81,29 +77,37 @@ public class AnamnesebogenController {
     /**
      * Processes the anamnesis form submission.
      *
-     * @param minorPatient Patient data from the form
+     * @param patientForm Patient data from the form
      * @param signatureData Optional signature data as base64 string
      * @param lang Language code used for the form
+     * @param request HTTP request for IP address and user agent
      * @return Redirect to PDF generation
      */
     @PostMapping("/submit-anamnesebogen")
     public String submitAnamnesebogen(
-            @ModelAttribute MinorPatient minorPatient,
+            @ModelAttribute PatientFormDTO patientForm,
             @RequestParam(value = "signatureData", required = false) String signatureData,
-            @RequestParam(value = "lang", defaultValue = "de") String lang) {
+            @RequestParam(value = "lang", defaultValue = "de") String lang,
+            HttpServletRequest request) {
 
         try {
             log.info("Processing form submission for patient: {} {} in language: {}",
-                    minorPatient.getFirstName(), minorPatient.getLastName(), lang);
+                    patientForm.getFirstName(), patientForm.getLastName(), lang);
 
             // Store the language with the patient data
-            minorPatient.setLanguage(lang);
+            patientForm.setLanguage(lang);
 
             // Process signature if available
-            processSignature(minorPatient, signatureData);
+            processSignature(patientForm, signatureData);
 
-            // Store patient data with unique ID
-            String patientId = storePatientData(minorPatient);
+            // Get client IP and user agent for audit trail
+            String ipAddress = getClientIpAddress(request);
+            String userAgent = request.getHeader("User-Agent");
+
+            // Save patient data to database
+            UUID patientId = patientService.savePatient(patientForm, ipAddress, userAgent);
+
+            log.info("Patient saved to database with ID: {}", patientId);
 
             // Redirect to PDF generation
             return "redirect:/pdf?id=" + patientId;
@@ -117,45 +121,56 @@ public class AnamnesebogenController {
     /**
      * Generates and serves PDF file for the patient data.
      *
-     * @param patientId ID of the patient data in the store
+     * @param patientIdStr ID of the patient in the database
      * @param response HTTP response to write PDF to
      */
     @GetMapping("/pdf")
     public void createAndStorePDF(
-            @RequestParam(value = "id", required = false) String patientId,
+            @RequestParam(value = "id", required = false) String patientIdStr,
             HttpServletResponse response) {
 
-        log.info("PDF endpoint called with ID: {}", patientId);
+        log.info("PDF endpoint called with ID: {}", patientIdStr);
         String lang = "de"; // Default language
 
         try {
             // Validate patient ID
-            if (patientId == null || patientId.isEmpty()) {
+            if (patientIdStr == null || patientIdStr.isEmpty()) {
                 handleMissingPatientId(response, lang);
                 return;
             }
 
-            // Get patient data
-            MinorPatient minorPatient = patientStore.get(patientId);
-            if (minorPatient == null) {
-                handlePatientNotFound(response, patientId, lang);
+            // Parse UUID
+            UUID patientId;
+            try {
+                patientId = UUID.fromString(patientIdStr);
+            } catch (IllegalArgumentException e) {
+                log.error("Invalid patient ID format: {}", patientIdStr);
+                handlePatientNotFound(response, patientIdStr, lang);
                 return;
             }
 
+            // Get patient data from database
+            Optional<PatientFormDTO> patientFormOpt = patientService.getPatientForPdf(patientId);
+            if (patientFormOpt.isEmpty()) {
+                handlePatientNotFound(response, patientIdStr, lang);
+                return;
+            }
+
+            PatientFormDTO patientForm = patientFormOpt.get();
+
             // Get the language from patient data
-            lang = minorPatient.getLanguage() != null ? minorPatient.getLanguage() : "de";
+            lang = patientForm.getLanguage() != null ? patientForm.getLanguage() : "de";
 
             log.info("Found patient: {} {} with language: {}",
-                    minorPatient.getFirstName(), minorPatient.getLastName(), lang);
-            log.info("Has signature: {}", minorPatient.hasSignature());
+                    patientForm.getFirstName(), patientForm.getLastName(), lang);
+            log.info("Has signature: {}", patientForm.hasSignature());
 
             // Delegate PDF generation and serving to PdfService
             try {
-                pdfService.generateAndServePdf(minorPatient, response);
+                pdfService.generateAndServePdf(patientForm, response);
 
-                // Clean up after successfully serving the PDF
-                patientStore.remove(patientId);
-                log.info("PDF served successfully, patient data removed from store");
+                // Patient data remains in database for GDPR compliance (10-year retention)
+                log.info("PDF served successfully, patient data retained in database for compliance");
             } catch (DocumentException e) {
                 log.error("Error generating PDF document", e);
                 response.sendRedirect("/anamnesebogen?error=pdf_error&lang=" + lang);
@@ -265,10 +280,10 @@ public class AnamnesebogenController {
     /**
      * Processes and stores signature data from form submission.
      *
-     * @param minorPatient Patient to attach signature to
+     * @param patientForm Patient to attach signature to
      * @param signatureData Base64 encoded signature data
      */
-    private void processSignature(MinorPatient minorPatient, String signatureData) {
+    private void processSignature(PatientFormDTO patientForm, String signatureData) {
         if (signatureData != null && !signatureData.isEmpty()) {
             log.info("Processing signature data of length: {}", signatureData.length());
 
@@ -278,7 +293,7 @@ public class AnamnesebogenController {
                 if (parts.length > 1) {
                     String base64Data = parts[1];
                     byte[] signatureBytes = Base64.getDecoder().decode(base64Data);
-                    minorPatient.setSignature(signatureBytes);
+                    patientForm.setSignature(signatureBytes);
                     log.info("Signature processed successfully, byte length: {}", signatureBytes.length);
                 } else {
                     log.warn("Invalid signature format, no comma found in data URL");
@@ -293,16 +308,39 @@ public class AnamnesebogenController {
     }
 
     /**
-     * Stores patient data with a UUID.
+     * Extract client IP address from HTTP request.
+     * Checks common proxy headers first before falling back to remote address.
      *
-     * @param minorPatient Patient data to store
-     * @return Generated patient ID
+     * @param request HTTP request
+     * @return Client IP address
      */
-    private String storePatientData(MinorPatient minorPatient) {
-        String patientId = UUID.randomUUID().toString();
-        patientStore.put(patientId, minorPatient);
-        log.info("Patient stored with ID: {}", patientId);
-        return patientId;
+    private String getClientIpAddress(HttpServletRequest request) {
+        String[] headerNames = {
+                "X-Forwarded-For",
+                "Proxy-Client-IP",
+                "WL-Proxy-Client-IP",
+                "HTTP_X_FORWARDED_FOR",
+                "HTTP_X_FORWARDED",
+                "HTTP_X_CLUSTER_CLIENT_IP",
+                "HTTP_CLIENT_IP",
+                "HTTP_FORWARDED_FOR",
+                "HTTP_FORWARDED",
+                "HTTP_VIA",
+                "REMOTE_ADDR"
+        };
+
+        for (String header : headerNames) {
+            String ip = request.getHeader(header);
+            if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
+                // X-Forwarded-For may contain multiple IPs, take the first one
+                if (ip.contains(",")) {
+                    ip = ip.split(",")[0].trim();
+                }
+                return ip;
+            }
+        }
+
+        return request.getRemoteAddr();
     }
 
     /**

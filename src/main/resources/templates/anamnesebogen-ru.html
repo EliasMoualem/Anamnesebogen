@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anamnesebogen</title>
+    <title>Анкета медицинского анамнеза</title>
     <!-- jQuery UI CSS for datepicker -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" />
     <style>
@@ -212,7 +212,7 @@
 </head>
 <body>
 <div class="container">
-    <h1>Anamnesebogen</h1>
+    <h1>Анкета медицинского анамнеза</h1>
 
     <!-- Error message display -->
     <div class="error-message" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
@@ -227,222 +227,222 @@
 
     <form id="patient-form" th:action="@{/submit-anamnesebogen}" th:object="${patientForm}" method="post">
         <!-- Include the language parameter -->
-        <input type="hidden" th:name="lang" th:value="${lang}" />
+        <input type="hidden" name="lang" value="ru" />
 
         <!-- Step 1: Personal Data -->
         <div id="step-1" class="step-content active">
             <div class="section">
-                <h2>Persönliche Daten</h2>
+                <h2>Личная информация</h2>
                 <div class="form-group">
-                    <label for="firstName">Vorname</label>
+                    <label for="firstName">Имя</label>
                     <input type="text" id="firstName" th:field="*{firstName}" required>
                 </div>
                 <div class="form-group">
-                    <label for="lastName">Nachname</label>
+                    <label for="lastName">Фамилия</label>
                     <input type="text" id="lastName" th:field="*{lastName}" required>
                 </div>
                 <div class="form-group">
-                    <label for="birthDate">Geburtsdatum</label>
-                    <input type="text" id="birthDate" th:field="*{birthDate}" class="datepicker" placeholder="TT.MM.JJJJ" required>
+                    <label for="birthDate">Дата рождения</label>
+                    <input type="text" id="birthDate" th:field="*{birthDate}" class="datepicker" placeholder="ДД.ММ.ГГГГ" required>
                 </div>
                 <div class="form-group">
-                    <label for="gender">Geschlecht</label>
+                    <label for="gender">Пол</label>
                     <select id="gender" th:field="*{gender}" required>
-                        <option value="">Bitte wählen</option>
-                        <option value="male">Männlich</option>
-                        <option value="female">Weiblich</option>
-                        <option value="diverse">Divers</option>
+                        <option value="">Пожалуйста, выберите</option>
+                        <option value="male">Мужской</option>
+                        <option value="female">Женский</option>
+                        <option value="diverse">Другой</option>
                     </select>
                 </div>
             </div>
             <div class="buttons">
-                <button type="button" class="next-button" data-step="1">Weiter</button>
+                <button type="button" class="next-button" data-step="1">Далее</button>
             </div>
         </div>
 
         <!-- Step 2: Address -->
         <div id="step-2" class="step-content">
             <div class="section">
-                <h2>Adresse</h2>
+                <h2>Адрес</h2>
                 <div class="form-group">
-                    <label for="street">Straße und Hausnummer</label>
+                    <label for="street">Улица и номер дома</label>
                     <input type="text" id="street" th:field="*{street}">
                 </div>
                 <div class="form-group">
-                    <label for="zipCode">PLZ</label>
+                    <label for="zipCode">Почтовый индекс</label>
                     <input type="text" id="zipCode" th:field="*{zipCode}">
                 </div>
                 <div class="form-group">
-                    <label for="city">Ort</label>
+                    <label for="city">Город</label>
                     <input type="text" id="city" th:field="*{city}">
                 </div>
             </div>
             <div class="buttons">
-                <button type="button" class="prev-button" data-step="2">Zurück</button>
-                <button type="button" class="next-button" data-step="2">Weiter</button>
+                <button type="button" class="prev-button" data-step="2">Назад</button>
+                <button type="button" class="next-button" data-step="2">Далее</button>
             </div>
         </div>
 
         <!-- Step 3: Contact -->
         <div id="step-3" class="step-content">
             <div class="section">
-                <h2>Kontakt</h2>
+                <h2>Контактная информация</h2>
                 <div class="form-group">
-                    <label for="mobileNumber">Mobilnummer</label>
+                    <label for="mobileNumber">Мобильный телефон</label>
                     <input type="tel" id="mobileNumber" th:field="*{mobileNumber}">
                 </div>
                 <div class="form-group">
-                    <label for="phoneNumber">Telefon</label>
+                    <label for="phoneNumber">Телефон</label>
                     <input type="tel" id="phoneNumber" th:field="*{phoneNumber}">
                 </div>
                 <div class="form-group">
-                    <label for="emailAddress">E-Mail</label>
+                    <label for="emailAddress">Адрес электронной почты</label>
                     <input type="email" id="emailAddress" th:field="*{emailAddress}">
                 </div>
             </div>
 
             <!-- Insurance Section -->
             <div class="section" id="insurance-section" style="margin-top: 30px;">
-                <h2>Versicherungsinformationen</h2>
+                <h2>Информация о страховании</h2>
 
                 <!-- Hidden field for insurance type (set automatically based on age) -->
                 <input type="hidden" id="insuranceType" name="insuranceType" value="SELF_INSURED">
 
                 <div class="info-box" id="minor-insurance-info" style="display: none;">
-                    <p><strong>Hinweis:</strong> Minderjährige Patienten sind automatisch familienversichert. Bitte geben Sie die Daten des Hauptversicherten an.</p>
+                    <p><strong>Примечание:</strong> Несовершеннолетние пациенты автоматически охвачены семейным страхованием. Пожалуйста, предоставьте информацию об основном держателе полиса.</p>
                 </div>
             </div>
 
             <!-- Guardian Section (shown only for minors under 18) -->
             <div id="guardian-section" class="guardian-section">
                 <div class="info-box">
-                    <p><strong>Hinweis:</strong> Da der Patient minderjährig ist (unter 18 Jahre), müssen die Daten des Erziehungsberechtigten angegeben werden.</p>
+                    <p><strong>Примечание:</strong> Поскольку пациент является несовершеннолетним (до 18 лет), необходимо предоставить информацию о законном опекуне.</p>
                 </div>
 
-                <h3>Angaben zum Erziehungsberechtigten</h3>
+                <h3>Информация о законном опекуне</h3>
 
                 <div class="form-group">
-                    <label for="guardian.relationshipType">Verwandtschaftsverhältnis *</label>
+                    <label for="guardian.relationshipType">Родство *</label>
                     <select id="guardian.relationshipType" th:field="*{guardian.relationshipType}" class="guardian-required">
-                        <option value="">Bitte wählen</option>
-                        <option value="MOTHER">Mutter</option>
-                        <option value="FATHER">Vater</option>
-                        <option value="LEGAL_GUARDIAN">Erziehungsberechtigter</option>
-                        <option value="GRANDPARENT">Großelternteil</option>
-                        <option value="OTHER">Andere</option>
+                        <option value="">Пожалуйста, выберите</option>
+                        <option value="MOTHER">Мать</option>
+                        <option value="FATHER">Отец</option>
+                        <option value="LEGAL_GUARDIAN">Законный опекун</option>
+                        <option value="GRANDPARENT">Бабушка/Дедушка</option>
+                        <option value="OTHER">Другое</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="guardian.firstName">Vorname *</label>
+                    <label for="guardian.firstName">Имя *</label>
                     <input type="text" id="guardian.firstName" th:field="*{guardian.firstName}" class="guardian-required">
                 </div>
 
                 <div class="form-group">
-                    <label for="guardian.lastName">Nachname *</label>
+                    <label for="guardian.lastName">Фамилия *</label>
                     <input type="text" id="guardian.lastName" th:field="*{guardian.lastName}" class="guardian-required">
                 </div>
 
                 <div class="form-group">
-                    <label for="guardian.birthDate">Geburtsdatum</label>
-                    <input type="text" id="guardian.birthDate" th:field="*{guardian.birthDate}" class="datepicker" placeholder="TT.MM.JJJJ">
+                    <label for="guardian.birthDate">Дата рождения</label>
+                    <input type="text" id="guardian.birthDate" th:field="*{guardian.birthDate}" class="datepicker" placeholder="ДД.ММ.ГГГГ">
                 </div>
 
                 <div class="form-group">
-                    <label for="guardian.mobileNumber">Mobilnummer *</label>
+                    <label for="guardian.mobileNumber">Мобильный телефон *</label>
                     <input type="tel" id="guardian.mobileNumber" th:field="*{guardian.mobileNumber}" class="guardian-required">
                 </div>
 
                 <div class="form-group">
-                    <label for="guardian.phoneNumber">Telefon</label>
+                    <label for="guardian.phoneNumber">Телефон</label>
                     <input type="tel" id="guardian.phoneNumber" th:field="*{guardian.phoneNumber}">
                 </div>
 
                 <div class="form-group">
-                    <label for="guardian.emailAddress">E-Mail</label>
+                    <label for="guardian.emailAddress">Адрес электронной почты</label>
                     <input type="email" id="guardian.emailAddress" th:field="*{guardian.emailAddress}">
                 </div>
 
                 <div class="form-group">
-                    <label for="guardian.street">Straße und Hausnummer</label>
+                    <label for="guardian.street">Улица и номер дома</label>
                     <input type="text" id="guardian.street" th:field="*{guardian.street}">
                 </div>
 
                 <div class="form-group">
-                    <label for="guardian.zipCode">PLZ</label>
+                    <label for="guardian.zipCode">Почтовый индекс</label>
                     <input type="text" id="guardian.zipCode" th:field="*{guardian.zipCode}">
                 </div>
 
                 <div class="form-group">
-                    <label for="guardian.city">Ort</label>
+                    <label for="guardian.city">Город</label>
                     <input type="text" id="guardian.city" th:field="*{guardian.city}">
                 </div>
             </div>
 
             <!-- Policyholder Section (for family-insured patients, shown for all minors) -->
             <div id="policyholder-section" class="guardian-section" style="border-left-color: #FF9800;">
-                <h3>Hauptversicherter (Familienversicherung)</h3>
+                <h3>Основной держатель полиса (семейное страхование)</h3>
 
                 <div class="form-group">
                     <label>
                         <input type="checkbox" id="sameAsGuardian">
-                        Hauptversicherter ist der Erziehungsberechtigte
+                        Держатель полиса является законным опекуном
                     </label>
                 </div>
 
                 <div class="form-group">
-                    <label for="policyholder.firstName">Vorname *</label>
+                    <label for="policyholder.firstName">Имя *</label>
                     <input type="text" id="policyholder.firstName" th:field="*{policyholder.firstName}" class="policyholder-required">
                 </div>
 
                 <div class="form-group">
-                    <label for="policyholder.lastName">Nachname *</label>
+                    <label for="policyholder.lastName">Фамилия *</label>
                     <input type="text" id="policyholder.lastName" th:field="*{policyholder.lastName}" class="policyholder-required">
                 </div>
 
                 <div class="form-group">
-                    <label for="policyholder.birthDate">Geburtsdatum</label>
-                    <input type="text" id="policyholder.birthDate" th:field="*{policyholder.birthDate}" class="datepicker" placeholder="TT.MM.JJJJ">
+                    <label for="policyholder.birthDate">Дата рождения</label>
+                    <input type="text" id="policyholder.birthDate" th:field="*{policyholder.birthDate}" class="datepicker" placeholder="ДД.ММ.ГГГГ">
                 </div>
 
                 <div class="form-group">
-                    <label for="policyholder.mobileNumber">Mobilnummer</label>
+                    <label for="policyholder.mobileNumber">Мобильный телефон</label>
                     <input type="tel" id="policyholder.mobileNumber" th:field="*{policyholder.mobileNumber}">
                 </div>
 
                 <div class="form-group">
-                    <label for="policyholder.phoneNumber">Telefon</label>
+                    <label for="policyholder.phoneNumber">Телефон</label>
                     <input type="tel" id="policyholder.phoneNumber" th:field="*{policyholder.phoneNumber}">
                 </div>
 
                 <div class="form-group">
-                    <label for="policyholder.emailAddress">E-Mail</label>
+                    <label for="policyholder.emailAddress">Адрес электронной почты</label>
                     <input type="email" id="policyholder.emailAddress" th:field="*{policyholder.emailAddress}">
                 </div>
             </div>
 
             <div class="buttons">
-                <button type="button" class="prev-button" data-step="3">Zurück</button>
-                <button type="button" class="next-button" data-step="3">Weiter</button>
+                <button type="button" class="prev-button" data-step="3">Назад</button>
+                <button type="button" class="next-button" data-step="3">Далее</button>
             </div>
         </div>
 
         <!-- Step 4: Signature and Submit -->
         <div id="step-4" class="step-content">
             <div class="section">
-                <h2>Unterschrift</h2>
-                <p>Bitte unterschreiben Sie hier:</p>
+                <h2>Подпись</h2>
+                <p>Пожалуйста, распишитесь здесь:</p>
                 <div class="signature-container">
                     <canvas id="signature-pad"></canvas>
                 </div>
                 <div>
-                    <button type="button" id="reset-button">Unterschrift löschen</button>
+                    <button type="button" id="reset-button">Очистить подпись</button>
                 </div>
             </div>
             <div class="buttons">
-                <button type="button" class="prev-button" data-step="4">Zurück</button>
-                <button type="submit">Formular absenden</button>
-                <button type="button" id="reset-form-button">Formular zurücksetzen</button>
+                <button type="button" class="prev-button" data-step="4">Назад</button>
+                <button type="submit">Отправить форму</button>
+                <button type="button" id="reset-form-button">Сбросить форму</button>
             </div>
         </div>
     </form>
@@ -455,27 +455,17 @@
     document.addEventListener("DOMContentLoaded", function() {
         // Initialize datepicker
         $(".datepicker").datepicker({
-            dateFormat: 'dd.mm.yy',  // German date format (day.month.year)
+            dateFormat: 'dd.mm.yy',
             changeMonth: true,
             changeYear: true,
-            yearRange: "-100:+0",    // Allow selecting dates from 100 years ago until today
-            monthNames: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-                'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
-            monthNamesShort: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun',
-                'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
-            dayNames: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
-            dayNamesShort: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
-            dayNamesMin: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
-            firstDay: 1,             // Start week on Monday (0 = Sunday, 1 = Monday)
-            showWeek: true,          // Show week numbers (common in German-speaking countries)
-            weekHeader: 'KW'         // Header for week column (short for "Kalenderwoche")
+            yearRange: "-100:+0"
         });
 
         // Age calculation and guardian section visibility
         function calculateAge(birthDateString) {
             if (!birthDateString) return null;
 
-            // Parse German date format (dd.mm.yyyy)
+            // Parse date format (dd.mm.yyyy)
             const parts = birthDateString.split('.');
             if (parts.length !== 3) return null;
 
@@ -525,7 +515,7 @@
                 policyholderSection.classList.remove('visible');
                 minorInsuranceInfo.style.display = 'none';
 
-                // Set insurance type to SELF_INSURED for adults (can be changed later if needed)
+                // Set insurance type to SELF_INSURED for adults
                 insuranceTypeField.value = 'SELF_INSURED';
 
                 // Remove required and clear fields
@@ -613,7 +603,7 @@
                     const gender = document.getElementById('gender').value;
 
                     if (!firstName || !lastName || !birthDate || !gender) {
-                        alert('Bitte füllen Sie alle Pflichtfelder aus.');
+                        alert('Пожалуйста, заполните все обязательные поля.');
                         return;
                     }
                 }
@@ -631,7 +621,7 @@
                         const guardianMobile = document.getElementById('guardian.mobileNumber').value;
 
                         if (!guardianRelationship || !guardianFirstName || !guardianLastName || !guardianMobile) {
-                            alert('Bitte füllen Sie alle Pflichtfelder für den Erziehungsberechtigten aus (markiert mit *).');
+                            alert('Пожалуйста, заполните все обязательные поля для законного опекуна (отмеченные *).');
                             return;
                         }
 
@@ -640,7 +630,7 @@
                         const policyholderLastName = document.getElementById('policyholder.lastName').value;
 
                         if (!policyholderFirstName || !policyholderLastName) {
-                            alert('Bitte füllen Sie alle Pflichtfelder für den Hauptversicherten aus (markiert mit *).');
+                            alert('Пожалуйста, заполните все обязательные поля для основного держателя полиса (отмеченные *).');
                             return;
                         }
                     }
@@ -731,7 +721,7 @@
 
                 if (!firstName || !lastName || !birthDate || !gender) {
                     event.preventDefault();
-                    alert('Bitte füllen Sie alle Pflichtfelder aus.');
+                    alert('Пожалуйста, заполните все обязательные поля.');
                     return;
                 }
             }

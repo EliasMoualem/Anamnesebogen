@@ -4,14 +4,9 @@
     <title>Anamnesebogen</title>
     <meta charset="UTF-8"></meta>
     <style>
-        :root {
-            --primary-color: #407BFF;
-            --secondary-color: #F2F2F2;
-            --text-color: #333333;
-            --light-text: #666666;
-            --border-color: #DDDDDD;
-            --section-spacing: 30px;
-            --field-spacing: 12px;
+        @page {
+            size: A4;
+            margin: 1.5cm 2cm;
         }
 
         * {
@@ -21,174 +16,366 @@
         }
 
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.5;
-            color: var(--text-color);
-            margin: 0;
-            padding: 50px;
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 10pt;
+            line-height: 1.4;
+            color: #000000;
             background-color: white;
         }
 
-        /* Header section */
-        .header {
-            text-align: center;
-            margin-bottom: var(--section-spacing);
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--primary-color);
+        /* Header with practice info and logo */
+        .page-header {
+            display: table;
+            width: 100%;
+            margin-bottom: 40px;
         }
 
-        .header h1 {
-            color: var(--primary-color);
-            font-size: 28px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 5px;
+        .practice-info {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+            font-size: 8pt;
+            line-height: 1.3;
+        }
+
+        .logo-area {
+            display: table-cell;
+            width: 50%;
+            text-align: right;
+            vertical-align: top;
+        }
+
+        .logo-image {
+            width: 170px;
+            height: auto;
+        }
+
+        /* Main title */
+        .main-title {
+            font-size: 13pt;
+            font-weight: bold;
+            margin-bottom: 25px;
         }
 
         /* Section styling */
         .section {
-            margin-bottom: var(--section-spacing);
+            margin-bottom: 20px;
         }
 
-        .section h2 {
-            color: var(--primary-color);
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid var(--secondary-color);
+        .section-title {
+            font-size: 10pt;
+            font-weight: bold;
+            margin-bottom: 8px;
         }
 
-        /* Field styling */
-        .field {
+        /* Field row - inline label and value */
+        .field-row {
+            margin-bottom: 3px;
             display: flex;
-            margin-bottom: var(--field-spacing);
-            padding-left: 10px;
+            justify-content: space-between;
+            align-items: baseline;
         }
 
-        .label {
-            color: var(--light-text);
-            font-size: 14px;
-            min-width: 120px;
-            margin-right: 15px;
+        .field-label {
+            font-size: 9pt;
+            flex: 0 0 auto;
+            margin-right: 20px;
         }
 
-        .value {
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--text-color);
-            flex: 1;
+        .field-value {
+            font-size: 9pt;
+            text-align: right;
+            flex: 1 1 auto;
+        }
+
+        /* Gender inline display */
+        .gender-display {
+            font-size: 9pt;
         }
 
         /* Signature area */
-        .signature-area {
-            margin-top: 40px;
+        .signature-section {
+            margin-top: 30px;
         }
 
-        .signature-area h3 {
-            color: var(--primary-color);
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid var(--secondary-color);
+        .signature-row {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
         }
 
-        .signature {
-            display: block;
-            max-width: 300px;
-            margin: 20px auto;
+        .signature-label {
+            font-size: 9pt;
+            flex: 0 0 auto;
+            margin-right: 20px;
+        }
+
+        .signature-value {
+            font-size: 9pt;
+            text-align: right;
+            flex: 1 1 auto;
+        }
+
+        .signature-image-container {
+            margin-top: 10px;
+        }
+
+        .signature-image {
+            width: 300px;
+            height: 90px;
+        }
+
+        .signature-metadata {
+            margin-top: 5px;
+            font-size: 7pt;
+            color: #666666;
+            font-style: italic;
         }
 
         /* Footer */
-        .footer {
-            margin-top: 40px;
-            padding-top: 15px;
-            border-top: 1px solid var(--border-color);
-            color: var(--light-text);
-            font-size: 12px;
-            text-align: right;
+        .page-footer {
+            position: fixed;
+            bottom: 1cm;
+            right: 2cm;
+            font-size: 8pt;
+            color: #666666;
         }
 
-        /* Empty value handling */
+        /* Utility classes */
         .empty-value {
-            color: #aaa;
+            color: #AAAAAA;
             font-style: italic;
         }
     </style>
 </head>
 <body>
-<div class="header">
-    <h1>Anamnesebogen</h1>
-    <div>Patienteninformationen</div>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="practice-info">
+        Kieferorthopädie Dr. Ehab Srur<br/>
+        Schleswigerstraße 14, 18109 Rostock<br/>
+        +493817699779<br/>
+        praxis@kfo-rostock.de
+    </div>
+    <div class="logo-area">
+        <img th:if="${logoImage != null}" th:src="@{'data:image/png;base64,' + ${logoImage}}" alt="Praxis Logo" class="logo-image" />
+    </div>
 </div>
 
+<!-- Main Title -->
+<div class="main-title">Anamnesebogen</div>
+
+<!-- Patient Section -->
 <div class="section">
-    <h2>Persönliche Daten</h2>
-    <div class="field">
-        <span class="label">Vorname:</span>
-        <span class="value" th:text="${minorPatient.firstName != null and !minorPatient.firstName.isEmpty() ? minorPatient.firstName : '-'}">-</span>
+    <div class="section-title">Patient</div>
+
+    <div class="gender-display" style="margin-bottom: 8px;">
+        <span th:text="${T(de.elias.moualem.Anamnesebogen.service.PdfService).formatGender(patientForm.gender)}">-</span>
     </div>
-    <div class="field">
-        <span class="label">Nachname:</span>
-        <span class="value" th:text="${minorPatient.lastName != null and !minorPatient.lastName.isEmpty() ? minorPatient.lastName : '-'}">-</span>
+
+    <div class="field-row">
+        <div class="field-label">Nachname:</div>
+        <div class="field-value" th:text="${patientForm.lastName != null and !patientForm.lastName.isEmpty() ? patientForm.lastName : '-'}">-</div>
     </div>
-    <div class="field">
-        <span class="label">Geburtsdatum:</span>
-        <span class="value" th:text="${minorPatient.birthDate != null and !minorPatient.birthDate.isEmpty() ? minorPatient.birthDate : '-'}">-</span>
+
+    <div class="field-row">
+        <div class="field-label">Vorname:</div>
+        <div class="field-value" th:text="${patientForm.firstName != null and !patientForm.firstName.isEmpty() ? patientForm.firstName : '-'}">-</div>
     </div>
-    <div class="field">
-        <span class="label">Geschlecht:</span>
-        <span class="value" th:text="${T(de.elias.moualem.Anamnesebogen.service.PdfService).formatGender(minorPatient.gender)}">-</span>
+
+    <div class="field-row">
+        <div class="field-label">Geburtsdatum:</div>
+        <div class="field-value" th:text="${patientForm.birthDate != null and !patientForm.birthDate.isEmpty() ? patientForm.birthDate : '-'}">-</div>
+    </div>
+
+    <div class="field-row">
+        <div class="field-label">Straße &amp; Hausnummer:</div>
+        <div class="field-value" th:text="${patientForm.street != null and !patientForm.street.isEmpty() ? patientForm.street : '-'}">-</div>
+    </div>
+
+    <div class="field-row">
+        <div class="field-label">Postleitzahl &amp; Ort:</div>
+        <div class="field-value" th:text="${(patientForm.zipCode != null ? patientForm.zipCode : '') + ' ' + (patientForm.city != null ? patientForm.city : '')}">-</div>
+    </div>
+
+    <div class="field-row">
+        <div class="field-label">Handynummer:</div>
+        <div class="field-value" th:text="${patientForm.mobileNumber != null and !patientForm.mobileNumber.isEmpty() ? patientForm.mobileNumber : '-'}">-</div>
+    </div>
+
+    <div class="field-row" th:if="${patientForm.phoneNumber != null and !patientForm.phoneNumber.isEmpty()}">
+        <div class="field-label">Telefon:</div>
+        <div class="field-value" th:text="${patientForm.phoneNumber}">-</div>
+    </div>
+
+    <div class="field-row">
+        <div class="field-label">E-Mail:</div>
+        <div class="field-value" th:text="${patientForm.emailAddress != null and !patientForm.emailAddress.isEmpty() ? patientForm.emailAddress : '-'}">-</div>
     </div>
 </div>
 
-<div class="section">
-    <h2>Adresse</h2>
-    <div class="field">
-        <span class="label">Straße:</span>
-        <span class="value" th:text="${minorPatient.street != null and !minorPatient.street.isEmpty() ? minorPatient.street : '-'}">-</span>
+<!-- Guardian Section (only for minor patients) -->
+<div class="section" th:if="${patientForm.guardian != null}">
+    <div class="section-title">Erziehungsberechtigter</div>
+
+    <div class="field-row">
+        <div class="field-label">Verhältnis:</div>
+        <div class="field-value" th:text="${patientForm.guardian.relationshipType != null ? patientForm.guardian.relationshipType : '-'}">-</div>
     </div>
-    <div class="field">
-        <span class="label">PLZ:</span>
-        <span class="value" th:text="${minorPatient.zipCode != null and !minorPatient.zipCode.isEmpty() ? minorPatient.zipCode : '-'}">-</span>
+
+    <div class="field-row">
+        <div class="field-label">Nachname:</div>
+        <div class="field-value" th:text="${patientForm.guardian.lastName != null and !patientForm.guardian.lastName.isEmpty() ? patientForm.guardian.lastName : '-'}">-</div>
     </div>
-    <div class="field">
-        <span class="label">Ort:</span>
-        <span class="value" th:text="${minorPatient.city != null and !minorPatient.city.isEmpty() ? minorPatient.city : '-'}">-</span>
+
+    <div class="field-row">
+        <div class="field-label">Vorname:</div>
+        <div class="field-value" th:text="${patientForm.guardian.firstName != null and !patientForm.guardian.firstName.isEmpty() ? patientForm.guardian.firstName : '-'}">-</div>
+    </div>
+
+    <div class="field-row">
+        <div class="field-label">Geburtsdatum:</div>
+        <div class="field-value" th:text="${patientForm.guardian.birthDate != null and !patientForm.guardian.birthDate.isEmpty() ? patientForm.guardian.birthDate : '-'}">-</div>
+    </div>
+
+    <div class="field-row">
+        <div class="field-label">Adresse:</div>
+        <div class="field-value" th:text="${patientForm.guardian.street != null and !patientForm.guardian.street.isEmpty() ? patientForm.guardian.street : '-'}">-</div>
+    </div>
+
+    <div class="field-row">
+        <div class="field-label">PLZ &amp; Ort:</div>
+        <div class="field-value" th:text="${(patientForm.guardian.zipCode != null ? patientForm.guardian.zipCode : '') + ' ' + (patientForm.guardian.city != null ? patientForm.guardian.city : '')}">-</div>
+    </div>
+
+    <div class="field-row">
+        <div class="field-label">Telefonnummer:</div>
+        <div class="field-value" th:text="${patientForm.guardian.mobileNumber != null and !patientForm.guardian.mobileNumber.isEmpty() ? patientForm.guardian.mobileNumber : '-'}">-</div>
+    </div>
+
+    <div class="field-row">
+        <div class="field-label">E-Mail-Adresse:</div>
+        <div class="field-value" th:text="${patientForm.guardian.emailAddress != null and !patientForm.guardian.emailAddress.isEmpty() ? patientForm.guardian.emailAddress : '-'}">-</div>
+    </div>
+
+    <div class="field-row" th:if="${patientForm.guardian.job != null and !patientForm.guardian.job.isEmpty()}">
+        <div class="field-label">Beruf:</div>
+        <div class="field-value" th:text="${patientForm.guardian.job}">-</div>
     </div>
 </div>
 
-<div class="section">
-    <h2>Kontakt</h2>
-    <div class="field">
-        <span class="label">Mobilnummer:</span>
-        <span class="value" th:text="${minorPatient.mobileNumber != null and !minorPatient.mobileNumber.isEmpty() ? minorPatient.mobileNumber : '-'}">-</span>
+<!-- Policyholder Section (only for family-insured patients) -->
+<div class="section" th:if="${patientForm.policyholder != null}">
+    <div class="section-title">Versicherter (Falls abweichend vom Patienten)</div>
+
+    <div class="field-row">
+        <div class="field-label">Nachname:</div>
+        <div class="field-value" th:text="${patientForm.policyholder.lastName != null and !patientForm.policyholder.lastName.isEmpty() ? patientForm.policyholder.lastName : '-'}">-</div>
     </div>
-    <div class="field">
-        <span class="label">Telefon:</span>
-        <span class="value" th:text="${minorPatient.phoneNumber != null and !minorPatient.phoneNumber.isEmpty() ? minorPatient.phoneNumber : '-'}">-</span>
+
+    <div class="field-row">
+        <div class="field-label">Vorname:</div>
+        <div class="field-value" th:text="${patientForm.policyholder.firstName != null and !patientForm.policyholder.firstName.isEmpty() ? patientForm.policyholder.firstName : '-'}">-</div>
     </div>
-    <div class="field">
-        <span class="label">E-Mail:</span>
-        <span class="value" th:text="${minorPatient.emailAddress != null and !minorPatient.emailAddress.isEmpty() ? minorPatient.emailAddress : '-'}">-</span>
+
+    <div class="field-row">
+        <div class="field-label">Geburtsdatum:</div>
+        <div class="field-value" th:text="${patientForm.policyholder.birthDate != null and !patientForm.policyholder.birthDate.isEmpty() ? patientForm.policyholder.birthDate : '-'}">-</div>
+    </div>
+
+    <div class="field-row">
+        <div class="field-label">Straße &amp; Hausnummer:</div>
+        <div class="field-value" th:text="${patientForm.policyholder.street != null and !patientForm.policyholder.street.isEmpty() ? patientForm.policyholder.street : '-'}">-</div>
+    </div>
+
+    <div class="field-row">
+        <div class="field-label">Postleitzahl &amp; Ort:</div>
+        <div class="field-value" th:text="${(patientForm.policyholder.zipCode != null ? patientForm.policyholder.zipCode : '') + ' ' + (patientForm.policyholder.city != null ? patientForm.policyholder.city : '')}">-</div>
     </div>
 </div>
 
-<div class="signature-area">
-    <h3>Unterschrift</h3>
-    <!-- Check if signature image exists and display it -->
+<!-- Insurance Section -->
+<div class="section" th:if="${patientForm.insuranceProvider != null or patientForm.insurancePolicyNumber != null}">
+    <div class="section-title">Versicherung</div>
+
+    <div class="field-row" th:if="${patientForm.insuranceProvider != null and !patientForm.insuranceProvider.isEmpty()}">
+        <div class="field-label">Name der Versicherung:</div>
+        <div class="field-value" th:text="${patientForm.insuranceProvider}">-</div>
+    </div>
+
+    <div class="field-row" th:if="${patientForm.insurancePolicyNumber != null and !patientForm.insurancePolicyNumber.isEmpty()}">
+        <div class="field-label">Versichertennummer:</div>
+        <div class="field-value" th:text="${patientForm.insurancePolicyNumber}">-</div>
+    </div>
+</div>
+
+<!-- Medical History Section -->
+<div class="section" th:if="${patientForm.allergies != null or patientForm.currentMedications != null or patientForm.medicalConditions != null}">
+    <div class="section-title">Medizinische Angaben</div>
+
+    <div class="field-row" th:if="${patientForm.allergies != null and !patientForm.allergies.isEmpty()}">
+        <div class="field-label">Allergien:</div>
+        <div class="field-value" th:text="${patientForm.allergies}">-</div>
+    </div>
+
+    <div class="field-row" th:if="${patientForm.currentMedications != null and !patientForm.currentMedications.isEmpty()}">
+        <div class="field-label">Aktuelle Medikamente:</div>
+        <div class="field-value" th:text="${patientForm.currentMedications}">-</div>
+    </div>
+
+    <div class="field-row" th:if="${patientForm.medicalConditions != null and !patientForm.medicalConditions.isEmpty()}">
+        <div class="field-label">Erkrankungen:</div>
+        <div class="field-value" th:text="${patientForm.medicalConditions}">-</div>
+    </div>
+
+    <div class="field-row" th:if="${patientForm.previousSurgeries != null and !patientForm.previousSurgeries.isEmpty()}">
+        <div class="field-label">Frühere Operationen:</div>
+        <div class="field-value" th:text="${patientForm.previousSurgeries}">-</div>
+    </div>
+</div>
+
+<!-- Signature Section -->
+<div class="signature-section">
     <div th:if="${signatureImage != null}">
-        <img th:src="@{'data:image/png;base64,' + ${signatureImage}}" alt="Unterschrift" class="signature" />
+        <div class="signature-row">
+            <div class="signature-label">Ort, Datum:</div>
+            <div class="signature-value" th:text="${signatureTimestamp != null ? #temporals.format(signatureTimestamp, 'dd.MM.yyyy') : '-'}">-</div>
+        </div>
+
+        <div class="signature-row">
+            <div class="signature-label">Unterschrift:</div>
+            <div class="signature-value"></div>
+        </div>
+
+        <div class="signature-image-container">
+            <img th:src="@{'data:image/png;base64,' + ${signatureImage}}" alt="Unterschrift" class="signature-image" />
+        </div>
+
+        <!-- Signature Metadata -->
+        <div class="signature-metadata">
+            Signatur-ID: <span th:text="${signatureId != null ? signatureId : '-'}" style="font-family: monospace;">-</span><br/>
+            Signiert am: <span th:text="${signatureTimestamp != null ? #temporals.format(signatureTimestamp, 'dd.MM.yyyy, HH:mm') + ' Uhr' : '-'}">-</span>
+        </div>
     </div>
+
     <div th:if="${signatureImage == null}">
-        <p class="empty-value">Keine Unterschrift vorhanden.</p>
+        <div class="signature-row">
+            <div class="signature-label">Ort, Datum:</div>
+            <div class="signature-value">-</div>
+        </div>
+        <div class="signature-row">
+            <div class="signature-label">Unterschrift:</div>
+            <div class="signature-value"></div>
+        </div>
     </div>
 </div>
 
-<div class="footer">
-    <p>Formular erstellt am: <span th:text="${#temporals.format(#temporals.createNow(), 'dd.MM.yyyy HH:mm')}">01.01.2025 12:00</span></p>
+<!-- Page Footer -->
+<div class="page-footer">
+    Seite 1 von 1
 </div>
+
 </body>
 </html>

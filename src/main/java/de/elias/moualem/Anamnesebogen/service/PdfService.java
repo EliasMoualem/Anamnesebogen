@@ -1,6 +1,6 @@
 package de.elias.moualem.Anamnesebogen.service;
 
-import de.elias.moualem.Anamnesebogen.model.MinorPatient;
+import de.elias.moualem.Anamnesebogen.dto.PatientFormDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,7 +44,7 @@ public class PdfService {
      * @return File object of the generated PDF
      * @throws Exception If PDF generation fails
      */
-    public File generatePdf(MinorPatient patient) throws Exception {
+    public File generatePdf(PatientFormDTO patient) throws Exception {
         // Create temporary file
         Path tempFile = Files.createTempFile("anamnese_", ".pdf");
         File pdfFile = tempFile.toFile();
@@ -74,7 +74,7 @@ public class PdfService {
      * @param response HTTP response to write the resulting PDF to
      * @throws Exception when PDF creation or IO fails
      */
-    public void generateAndServePdf(MinorPatient minorPatient, HttpServletResponse response) throws Exception {
+    public void generateAndServePdf(PatientFormDTO minorPatient, HttpServletResponse response) throws Exception {
         // Use existing generatePdf implementation
         File pdfFile = generatePdf(minorPatient);
         Path file = pdfFile.toPath();
@@ -102,16 +102,36 @@ public class PdfService {
      * @param patient The patient data to use in template
      * @return Processed HTML string
      */
-    private String processTemplate(MinorPatient patient) {
+    private String processTemplate(PatientFormDTO patient) {
         // Create Thymeleaf context and add patient data
         Context context = new Context();
-        context.setVariable("minorPatient", patient);
+        context.setVariable("patientForm", patient);
+
+        // Load and embed logo image
+        try {
+            byte[] logoBytes = getClass().getClassLoader()
+                    .getResourceAsStream("templates/logo.PNG")
+                    .readAllBytes();
+            String base64Logo = Base64.getEncoder().encodeToString(logoBytes);
+            context.setVariable("logoImage", base64Logo);
+            log.debug("Logo image loaded and added to PDF context");
+        } catch (Exception e) {
+            log.warn("Could not load logo image for PDF", e);
+            // Logo is optional, continue without it
+        }
 
         // If signature exists, convert it to base64 for embedding in HTML
         if (patient.hasSignature()) {
             try {
                 String base64Signature = Base64.getEncoder().encodeToString(patient.getSignature());
                 context.setVariable("signatureImage", base64Signature);
+
+                // Add signature metadata for verification display
+                context.setVariable("signatureId", patient.getSignatureId());
+                context.setVariable("signatureTimestamp", patient.getSignatureTimestamp());
+
+                log.debug("Signature metadata added to PDF context: ID={}, Timestamp={}",
+                    patient.getSignatureId(), patient.getSignatureTimestamp());
             } catch (Exception e) {
                 log.error("Error processing signature for PDF", e);
             }
