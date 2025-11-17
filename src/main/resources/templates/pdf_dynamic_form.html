@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${formDefinition.name}">Form PDF</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #333;
+            direction: ltr;
+        }
+
+        body.rtl {
+            direction: rtl;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header Section */
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .header img {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 20pt;
+            color: #667eea;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .header .form-description {
+            font-size: 10pt;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Metadata Section */
+        .metadata {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 25px;
+            font-size: 9pt;
+        }
+
+        .metadata-row {
+            display: table;
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        .metadata-label {
+            display: table-cell;
+            width: 30%;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .metadata-value {
+            display: table-cell;
+            width: 70%;
+            color: #333;
+        }
+
+        /* Form Fields Section */
+        .form-fields {
+            margin-bottom: 30px;
+        }
+
+        .field-group {
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+
+        .field-label {
+            font-weight: bold;
+            color: #444;
+            margin-bottom: 5px;
+            font-size: 10pt;
+        }
+
+        .field-value {
+            background: #f5f5f5;
+            padding: 10px;
+            border-left: 3px solid #667eea;
+            min-height: 25px;
+            word-wrap: break-word;
+            font-size: 10pt;
+        }
+
+        .field-value.empty {
+            color: #999;
+            font-style: italic;
+        }
+
+        /* Table for structured data */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .data-table th {
+            background: #667eea;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 10pt;
+        }
+
+        .data-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            font-size: 10pt;
+        }
+
+        .data-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+            text-align: center;
+            font-size: 8pt;
+            color: #666;
+        }
+
+        .footer .timestamp {
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        /* Section Headers */
+        .section-header {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        /* Page breaks */
+        .page-break {
+            page-break-after: always;
+        }
+
+        /* Signature section */
+        .signature-section {
+            margin-top: 40px;
+            page-break-inside: avoid;
+        }
+
+        .signature-image {
+            max-width: 300px;
+            height: auto;
+            border: 1px solid #ddd;
+            padding: 5px;
+            background: white;
+        }
+
+        /* Two-column layout for compact display */
+        .two-column {
+            display: table;
+            width: 100%;
+        }
+
+        .column {
+            display: table-cell;
+            width: 50%;
+            padding-right: 10px;
+        }
+
+        .column:last-child {
+            padding-right: 0;
+            padding-left: 10px;
+        }
+    </style>
+</head>
+<body th:classappend="${isRtl ? 'rtl' : ''}">
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <img th:if="${logoImage}" th:src="'data:image/png;base64,' + ${logoImage}" alt="Logo"/>
+            <h1 th:text="${formDefinition.name}">Form Title</h1>
+            <div th:if="${formDefinition.description}"
+                 class="form-description"
+                 th:text="${formDefinition.description}">Form Description</div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="metadata">
+            <div class="metadata-row">
+                <div class="metadata-label">Form Category:</div>
+                <div class="metadata-value" th:text="${formDefinition.category}">ANAMNESIS</div>
+            </div>
+            <div class="metadata-row">
+                <div class="metadata-label">Form Version:</div>
+                <div class="metadata-value" th:text="${formDefinition.version}">1.0.0</div>
+            </div>
+            <div class="metadata-row">
+                <div class="metadata-label">Generated At:</div>
+                <div class="metadata-value" th:text="${#temporals.format(generatedAt, 'dd.MM.yyyy HH:mm:ss')}">01.01.2025 12:00:00</div>
+            </div>
+        </div>
+
+        <!-- Section: Submitted Data -->
+        <div class="section-header">Submitted Information</div>
+
+        <!-- Display all form fields in order using formattedData -->
+        <div class="form-fields">
+            <div th:each="entry : ${formattedData}" class="field-group">
+                <div class="field-value" th:text="${entry.value}">Label: Value</div>
+            </div>
+        </div>
+
+        <!-- Section: Signatures -->
+        <div th:if="${signatures != null and !signatures.isEmpty()}" class="signature-section">
+            <div class="section-header">Signatures</div>
+            <div th:each="entry : ${signatures}" class="field-group">
+                <div class="field-label">Digital Signature</div>
+                <div style="padding: 10px; background: #f9f9f9; border-left: 3px solid #667eea;">
+                    <img th:src="'data:image/png;base64,' + ${entry.value.base64Image}"
+                         class="signature-image"
+                         alt="Signature" />
+                    <div style="margin-top: 10px; font-size: 8pt; color: #666;">
+                        <div><strong>Signature ID:</strong> <span th:text="${entry.value.uuid}">UUID</span></div>
+                        <div><strong>Signer:</strong> <span th:text="${entry.value.signerName}">Name</span></div>
+                        <div><strong>Signed At:</strong> <span th:text="${#temporals.format(entry.value.signedAt, 'dd.MM.yyyy HH:mm:ss')}">Timestamp</span></div>
+                        <div><strong>Integrity Hash:</strong> <span th:text="${entry.value.hash}" style="font-family: monospace; font-size: 7pt;">Hash</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alternative: Display as table (uncomment if preferred) -->
+        <!--
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 35%;">Field</th>
+                    <th style="width: 65%;">Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="entry : ${submissionData}">
+                    <td th:text="${entry.key}">Field Name</td>
+                    <td th:text="${entry.value != null ? entry.value : '-'}">Value</td>
+                </tr>
+            </tbody>
+        </table>
+        -->
+
+        <!-- Footer -->
+        <div class="footer">
+            <div>This document was automatically generated from a digital form submission.</div>
+            <div class="timestamp">
+                Generated on
+                <span th:text="${#temporals.format(generatedAt, 'dd.MM.yyyy')}">01.01.2025</span>
+                at
+                <span th:text="${#temporals.format(generatedAt, 'HH:mm')}">12:00</span>
+            </div>
+            <div style="margin-top: 10px; font-size: 7pt;">
+                Form ID: <span th:text="${formDefinition.id}">UUID</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Submitted Successfully</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-container {
+            max-width: 600px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .success-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: white;
+            color: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin: 0 auto 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .success-header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .success-header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .success-body {
+            padding: 40px 30px;
+        }
+
+        .success-message {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .form-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .form-info h3 {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .next-steps {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .next-steps h3 {
+            color: #1565c0;
+            font-size: 16px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .next-steps ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .next-steps li {
+            padding: 8px 0;
+            color: #1976d2;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .next-steps li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #f8f9ff;
+        }
+
+        .checkmark {
+            animation: checkmark 0.5s ease-in-out;
+        }
+
+        @keyframes checkmark {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .success-body {
+                padding: 30px 20px;
+            }
+
+            .success-header {
+                padding: 30px 20px;
+            }
+
+            .success-header h1 {
+                font-size: 22px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <!-- Success Header -->
+        <div class="success-header">
+            <div class="success-icon checkmark">
+                ✓
+            </div>
+            <h1>Form Submitted Successfully!</h1>
+            <p>Your form has been received</p>
+        </div>
+
+        <!-- Success Body -->
+        <div class="success-body">
+            <div class="success-message">
+                Thank you for submitting the form <strong th:text="${formDefinition.name}">Form Name</strong>.
+                Your information has been successfully received and saved.
+            </div>
+
+            <!-- Form Information -->
+            <div class="form-info">
+                <h3>Submission Details</h3>
+                <div class="info-item">
+                    <span class="info-label">Form:</span>
+                    <span class="info-value" th:text="${formDefinition.name}">Form Name</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Version:</span>
+                    <span class="info-value" th:text="${formDefinition.version}">1.0</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Date:</span>
+                    <span class="info-value" th:text="${#temporals.format(#temporals.createNow(), 'dd.MM.yyyy HH:mm')}">Today</span>
+                </div>
+                <div class="info-item" th:if="${submissionId != null}">
+                    <span class="info-label">Submission ID:</span>
+                    <span class="info-value" th:text="${submissionId}">UUID</span>
+                </div>
+                <div class="info-item" th:if="${patient != null}">
+                    <span class="info-label">Patient:</span>
+                    <span class="info-value" th:text="${patient.firstName + ' ' + patient.lastName}">Patient Name</span>
+                </div>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h3>What happens next?</h3>
+                <ul>
+                    <li>Your submission has been saved securely</li>
+                    <li>You will receive a confirmation email shortly</li>
+                    <li>Our team will review your information</li>
+                    <li>You can download a PDF copy of your submission below</li>
+                </ul>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a th:if="${submissionId != null}"
+                   th:href="@{/forms/{id}/pdf(id=${formDefinition.id},submissionId=${submissionId})}"
+                   class="btn btn-primary"
+                   target="_blank">
+                    Download PDF
+                </a>
+                <a th:href="@{/}" class="btn btn-secondary">
+                    Return to Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-scroll to top on page load
+        window.scrollTo(0, 0);
+
+        // Celebration confetti effect (optional)
+        console.log('🎉 Form submitted successfully!');
+    </script>
+</body>
+</html>

@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${formDefinition.name}">Form</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            direction: ltr;
+        }
+
+        body.rtl {
+            direction: rtl;
+        }
+
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .form-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .form-header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .form-header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .form-body {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group label .required {
+            color: #e74c3c;
+            margin-left: 4px;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="tel"],
+        .form-group input[type="number"],
+        .form-group input[type="date"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input[type="checkbox"],
+        .form-group input[type="radio"] {
+            margin-right: 8px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .form-group .checkbox-group,
+        .form-group .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .form-group .checkbox-item,
+        .form-group .radio-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .form-group .checkbox-item:hover,
+        .form-group .radio-item:hover {
+            background: #e9ecef;
+        }
+
+        .form-group .checkbox-item label,
+        .form-group .radio-item label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 400;
+        }
+
+        .form-group .help-text {
+            display: block;
+            font-size: 13px;
+            color: #6c757d;
+            margin-top: 6px;
+            font-style: italic;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 6px;
+            display: block;
+            font-weight: 500;
+        }
+
+        .field-error {
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .form-group input.has-error,
+        .form-group select.has-error,
+        .form-group textarea.has-error {
+            border-color: #e74c3c !important;
+            animation: shake 0.3s ease-in-out;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .alert-error {
+            background: #fee;
+            border-left: 4px solid #e74c3c;
+            color: #c0392b;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .form-body {
+                padding: 25px;
+            }
+
+            .form-header {
+                padding: 20px;
+            }
+
+            .form-header h1 {
+                font-size: 22px;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        /* Signature Pad Styles */
+        .signature-container {
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            background: white;
+            margin: 10px 0;
+            cursor: crosshair;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .signature-pad {
+            width: 100%;
+            height: 200px;
+            touch-action: none;
+        }
+
+        .signature-buttons {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-clear-signature {
+            padding: 8px 16px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s ease;
+        }
+
+        .btn-clear-signature:hover {
+            background: #5a6268;
+        }
+
+        .signature-group {
+            margin-bottom: 30px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+</head>
+<body th:classappend="${isRtl} ? 'rtl' : ''">
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="form-container">
+        <!-- Form Header -->
+        <div class="form-header">
+            <h1 th:text="${formDefinition.name}">Form Title</h1>
+            <p th:if="${formDefinition.description}"
+               th:text="${formDefinition.description}">Form Description</p>
+        </div>
+
+        <!-- Form Body -->
+        <div class="form-body">
+            <!-- Error Alert -->
+            <div th:if="${error}" class="alert alert-error">
+                <strong>Error:</strong>
+                <div th:if="${errorMessage}" th:utext="${#strings.replace(errorMessage, '&#10;', '<br/>')}">An error occurred</div>
+            </div>
+
+            <!-- Success Alert -->
+            <div th:if="${success}" class="alert alert-success">
+                <strong>Success:</strong>
+                <span th:text="${successMessage}">Form submitted successfully</span>
+            </div>
+
+            <!-- Dynamic Form -->
+            <form th:action="@{/submit-form/{id}(id=${formDefinition.id},lang=${language})}"
+                  th:object="${formData}"
+                  method="post"
+                  id="dynamicForm"
+                  enctype="multipart/form-data">
+
+                <!-- Dynamic Fields Injected Here -->
+                <div th:utext="${dynamicFieldsHtml}"></div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <a th:href="@{/}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // Form Validation
+        document.getElementById('dynamicForm').addEventListener('submit', function(e) {
+            const form = e.target;
+            const loadingOverlay = document.getElementById('loadingOverlay');
+
+            // Show loading overlay
+            loadingOverlay.classList.add('active');
+
+            // HTML5 validation
+            if (!form.checkValidity()) {
+                e.preventDefault();
+                loadingOverlay.classList.remove('active');
+
+                // Focus first invalid field
+                const firstInvalid = form.querySelector(':invalid');
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return false;
+            }
+        });
+
+        // Age Calculator (if birthDate field exists)
+        const birthDateInput = document.getElementById('birthDate');
+        if (birthDateInput) {
+            birthDateInput.addEventListener('change', function() {
+                const birthDate = new Date(this.value);
+                const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+
+                const ageDisplay = document.getElementById('calculatedAge');
+                if (ageDisplay) {
+                    ageDisplay.textContent = age >= 0 ? `Age: ${age} years` : '';
+                }
+            });
+        }
+
+        // Auto-scroll to first error on page load
+        window.addEventListener('load', function() {
+            const firstError = document.querySelector('.error-message');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+
+        // Pre-populate form fields with preserved data
+        // Parse JSON strings from backend
+        var preservedFormData = {};
+        var validationErrors = {};
+
+        try {
+            // Thymeleaf th:inline="javascript" automatically converts Java Maps to JavaScript objects
+            preservedFormData = [[${formDataMap}]];
+            validationErrors = [[${validationErrorsMap}]];
+
+            console.log('preservedFormData (from Thymeleaf):', preservedFormData);
+            console.log('validationErrors (from Thymeleaf):', validationErrors);
+        } catch (e) {
+            console.error('Error loading form data:', e);
+            preservedFormData = {};
+            validationErrors = {};
+        }
+
+        // Debug logging
+        console.log('preservedFormData:', preservedFormData);
+        console.log('validationErrors:', validationErrors);
+        console.log('formData keys:', Object.keys(preservedFormData));
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Populate form fields with preserved data
+            if (preservedFormData && Object.keys(preservedFormData).length > 0) {
+                console.log('Populating fields with preserved data...');
+                Object.keys(preservedFormData).forEach(fieldName => {
+                    const fieldValue = preservedFormData[fieldName];
+
+                    // Skip CSRF token and lang parameter
+                    if (fieldName === '_csrf' || fieldName === 'lang') {
+                        return;
+                    }
+
+                    const field = document.getElementById(fieldName) ||
+                                  document.querySelector(`[name="${fieldName}"]`);
+
+                    if (field) {
+                        console.log(`Setting field "${fieldName}" to value:`, fieldValue);
+                        if (field.type === 'checkbox') {
+                            field.checked = fieldValue === 'true' || fieldValue === true;
+                        } else if (field.type === 'radio') {
+                            const radioButton = document.querySelector(`input[name="${fieldName}"][value="${fieldValue}"]`);
+                            if (radioButton) {
+                                radioButton.checked = true;
+                            }
+                        } else if (field.tagName === 'SELECT') {
+                            field.value = fieldValue;
+                        } else if (field.type !== 'hidden' && !field.classList.contains('signature-data')) {
+                            // Regular input fields (text, email, date, etc.)
+                            field.value = fieldValue;
+                        }
+                    } else {
+                        console.warn(`Field "${fieldName}" not found in DOM`);
+                    }
+                });
+            } else {
+                console.log('No preserved form data found');
+            }
+
+            // Display field-specific validation errors
+            if (validationErrors && Object.keys(validationErrors).length > 0) {
+                Object.keys(validationErrors).forEach(fieldName => {
+                    const errors = validationErrors[fieldName];
+                    const field = document.getElementById(fieldName) ||
+                                  document.querySelector(`[name="${fieldName}"]`);
+
+                    if (field && errors && errors.length > 0) {
+                        // Add error class to field
+                        field.classList.add('has-error');
+
+                        // Find or create error message container
+                        let errorContainer = field.parentElement.querySelector('.field-error');
+                        if (!errorContainer) {
+                            errorContainer = document.createElement('span');
+                            errorContainer.className = 'error-message field-error';
+                            field.parentElement.appendChild(errorContainer);
+                        }
+
+                        // Display error message(s)
+                        errorContainer.textContent = errors.join(', ');
+
+                        // Scroll to first error field
+                        if (Object.keys(validationErrors)[0] === fieldName) {
+                            setTimeout(() => {
+                                field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                field.focus();
+                            }, 300);
+                        }
+                    }
+                });
+            }
+        });
+
+        // Signature Pad Initialization
+        const signaturePads = new Map();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize all signature pads
+            const canvases = document.querySelectorAll('.signature-pad');
+            canvases.forEach(canvas => {
+                const signaturePad = new SignaturePad(canvas, {
+                    backgroundColor: 'rgb(255, 255, 255)',
+                    penColor: 'rgb(0, 0, 0)',
+                    maxWidth: 2.5,
+                    minWidth: 0.5,
+                });
+
+                // Store reference
+                signaturePads.set(canvas.id, signaturePad);
+
+                // Resize canvas to full container width
+                function resizeCanvas() {
+                    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                    canvas.width = canvas.offsetWidth * ratio;
+                    canvas.height = canvas.offsetHeight * ratio;
+                    canvas.getContext('2d').scale(ratio, ratio);
+                    signaturePad.clear();
+                }
+
+                window.addEventListener('resize', resizeCanvas);
+                resizeCanvas();
+
+                // Update hidden input when signature changes
+                signaturePad.addEventListener('endStroke', () => {
+                    const fieldName = canvas.id.replace('-canvas', '');
+                    const hiddenInput = document.getElementById(fieldName);
+                    if (hiddenInput && !signaturePad.isEmpty()) {
+                        hiddenInput.value = signaturePad.toDataURL('image/png');
+                    }
+                });
+            });
+
+            // Handle clear buttons
+            const clearButtons = document.querySelectorAll('.btn-clear-signature');
+            clearButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const canvasId = this.getAttribute('data-canvas');
+                    const signaturePad = signaturePads.get(canvasId);
+                    if (signaturePad) {
+                        signaturePad.clear();
+                        const fieldName = canvasId.replace('-canvas', '');
+                        const hiddenInput = document.getElementById(fieldName);
+                        if (hiddenInput) {
+                            hiddenInput.value = '';
+                        }
+                    }
+                });
+            });
+
+            // Restore preserved signatures after validation failure
+            console.log('Checking for preserved signatures...');
+            console.log('preservedFormData:', preservedFormData);
+            console.log('Available signature pads:', Array.from(signaturePads.keys()));
+
+            if (preservedFormData && Object.keys(preservedFormData).length > 0) {
+                Object.keys(preservedFormData).forEach(fieldName => {
+                    const fieldValue = preservedFormData[fieldName];
+
+                    console.log(`Field "${fieldName}": type=${typeof fieldValue}, value length=${fieldValue ? fieldValue.length : 0}`);
+
+                    // Check if this is a signature field (data URL starting with data:image)
+                    if (fieldValue && typeof fieldValue === 'string' && fieldValue.startsWith('data:image')) {
+                        const canvasId = fieldName + '-canvas';
+                        const signaturePad = signaturePads.get(canvasId);
+
+                        console.log(`Found signature field "${fieldName}", canvasId="${canvasId}", signaturePad exists: ${!!signaturePad}`);
+
+                        if (signaturePad) {
+                            console.log(`Restoring signature for field "${fieldName}"`);
+                            try {
+                                // Get the canvas element
+                                const canvas = document.getElementById(canvasId);
+
+                                // Restore the signature from data URL
+                                signaturePad.fromDataURL(fieldValue, {
+                                    ratio: Math.max(window.devicePixelRatio || 1, 1),
+                                    width: canvas.offsetWidth,
+                                    height: canvas.offsetHeight
+                                });
+                                console.log(`Successfully restored signature for "${fieldName}"`);
+
+                                // Also update the hidden input
+                                const hiddenInput = document.getElementById(fieldName);
+                                if (hiddenInput) {
+                                    hiddenInput.value = fieldValue;
+                                    console.log(`Updated hidden input for "${fieldName}"`);
+                                }
+                            } catch (error) {
+                                console.error(`Error restoring signature for "${fieldName}":`, error);
+                            }
+                        } else {
+                            console.warn(`SignaturePad not found for canvas "${canvasId}"`);
+                        }
+                    }
+                });
+            } else {
+                console.log('No preserved form data to restore');
+            }
+        });
+
+        // Validate signatures before form submission
+        const form = document.getElementById('dynamicForm');
+        form.addEventListener('submit', function(e) {
+            // Check all required signature fields
+            const requiredSignatures = document.querySelectorAll('.signature-data[required]');
+            let hasEmptySignature = false;
+
+            requiredSignatures.forEach(input => {
+                const canvasId = input.id + '-canvas';
+                const signaturePad = signaturePads.get(canvasId);
+
+                if (signaturePad && signaturePad.isEmpty()) {
+                    hasEmptySignature = true;
+                    input.setCustomValidity('Signature is required');
+                } else {
+                    input.setCustomValidity('');
+                    // Ensure hidden input has the data
+                    if (signaturePad && !signaturePad.isEmpty()) {
+                        input.value = signaturePad.toDataURL('image/png');
+                    }
+                }
+            });
+
+            if (hasEmptySignature) {
+                e.preventDefault();
+                document.getElementById('loadingOverlay').classList.remove('active');
+                alert('Please provide all required signatures');
+            }
+        });
+    </script>
+</body>
+</html>

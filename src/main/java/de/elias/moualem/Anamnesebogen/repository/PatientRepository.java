@@ -19,10 +19,12 @@ import java.util.UUID;
 public interface PatientRepository extends JpaRepository<Patient, UUID> {
 
     /**
-     * Find patient by email address (excluding soft-deleted)
+     * Find patient by email address (excluding soft-deleted).
+     * Returns the most recently created patient if multiple matches exist.
      */
-    @Query("SELECT p FROM Patient p WHERE p.emailAddress = :email AND p.deletedAt IS NULL")
-    Optional<Patient> findByEmailAddress(@Param("email") String email);
+    @Query("SELECT p FROM Patient p WHERE p.emailAddress = :email AND p.deletedAt IS NULL " +
+           "ORDER BY p.createdAt DESC")
+    List<Patient> findByEmailAddress(@Param("email") String email);
 
     /**
      * Find all non-deleted patients
@@ -42,6 +44,21 @@ public interface PatientRepository extends JpaRepository<Patient, UUID> {
      */
     @Query("SELECT p FROM Patient p WHERE p.deletedAt IS NULL AND p.dataProcessingConsent = false")
     List<Patient> findPatientsWithoutConsent();
+
+    /**
+     * Find patient by first name, last name, and birth date (for duplicate detection).
+     * Returns the most recently created patient if multiple matches exist.
+     */
+    @Query("SELECT p FROM Patient p WHERE p.deletedAt IS NULL AND " +
+           "LOWER(p.firstName) = LOWER(:firstName) AND " +
+           "LOWER(p.lastName) = LOWER(:lastName) AND " +
+           "p.birthDate = :birthDate " +
+           "ORDER BY p.createdAt DESC")
+    List<Patient> findByFirstNameAndLastNameAndBirthDate(
+        @Param("firstName") String firstName,
+        @Param("lastName") String lastName,
+        @Param("birthDate") LocalDate birthDate
+    );
 
     /**
      * Find patients by name (for search functionality)
