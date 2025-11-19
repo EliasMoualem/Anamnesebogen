@@ -1,7 +1,6 @@
 package de.elias.moualem.Anamnesebogen.service.forms;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.elias.moualem.Anamnesebogen.dto.forms.FormTranslationDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

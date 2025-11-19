@@ -1,6 +1,5 @@
 package de.elias.moualem.Anamnesebogen.controller.forms;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.elias.moualem.Anamnesebogen.dto.forms.FormTranslationDTO;
 import de.elias.moualem.Anamnesebogen.entity.FormDefinition;
 import de.elias.moualem.Anamnesebogen.entity.FormSubmission;
@@ -33,7 +32,6 @@ public class DynamicFormController {
     private final DynamicFormPdfService pdfService;
     private final FormSubmissionService submissionService;
     private final FormValidationService validationService;
-    private final ObjectMapper objectMapper;
 
     /**
      * Displays a dynamic form to the patient.
