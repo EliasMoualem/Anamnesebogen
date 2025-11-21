@@ -358,7 +358,18 @@ public class DynamicFormPdfService {
         // Handle different types
         switch (type) {
             case "boolean":
-                return Boolean.TRUE.equals(value) ? "Yes" : "No";
+                // Handle both actual booleans and string representations
+                boolean boolValue;
+                if (value instanceof Boolean) {
+                    boolValue = (Boolean) value;
+                } else if (value instanceof String) {
+                    // Fallback for existing submissions with string "true"/"false"
+                    String strValue = ((String) value).toLowerCase();
+                    boolValue = "true".equals(strValue) || "yes".equals(strValue) || "1".equals(strValue);
+                } else {
+                    boolValue = Boolean.TRUE.equals(value);
+                }
+                return boolValue ? "Yes" : "No";
             case "array":
                 return value.toString().replace("[", "").replace("]", "");
             default:

@@ -36,6 +36,7 @@ public class FormSubmissionService {
     private final FormSubmissionRepository formSubmissionRepository;
     private final SignatureRepository signatureRepository;
     private final FormDefinitionService formDefinitionService;
+    private final FieldTypeService fieldTypeService;
     private final ObjectMapper objectMapper;
 
     /**
@@ -57,8 +58,8 @@ public class FormSubmissionService {
             // Load form definition
             FormDefinition formDefinition = formDefinitionService.getFormById(formId);
 
-            // Extract and create/update patient
-            Patient patient = extractAndSavePatient(formData, language);
+            // Extract and create/update patient using field mappings
+            Patient patient = extractAndSavePatient(formDefinition, formData, language);
 
             // Create FormSubmission entity
             FormSubmission submission = FormSubmission.builder()
@@ -92,51 +93,80 @@ public class FormSubmissionService {
     }
 
     /**
-     * Extract patient data from dynamic form fields and create/update Patient entity.
-     * Maps common field names to Patient entity fields.
+     * Extract patient data from dynamic form fields using field mappings.
+     * Uses FormDefinition.fieldMappings to map schema field names to canonical Patient entity properties.
      *
-     * Expected field names (case-insensitive):
-     * - firstName, first_name, vorname
-     * - lastName, last_name, nachname, familienname
-     * - birthDate, birth_date, geburtsdatum, dateOfBirth
-     * - email, emailAddress, email_address, e_mail
-     * - phone, phoneNumber, telefon, telefonnummer
-     * - mobile, mobileNumber, mobilnummer, handy
-     * - street, strasse, address
-     * - zipCode, zip_code, plz, postalCode
-     * - city, stadt, ort
-     * - gender, geschlecht
+     * This method replaces the old hardcoded field name matching approach with a flexible
+     * mapping-based system that allows forms to use any field names as long as they are
+     * properly mapped to field types in the form builder.
+     *
+     * @param formDefinition the form definition containing field mappings
+     * @param formData       map of form field names to values
+     * @param language       submission language
+     * @return saved Patient entity
      */
-    private Patient extractAndSavePatient(Map<String, Object> formData, String language) {
-        log.debug("Extracting patient data from form fields: {}", formData.keySet());
+    private Patient extractAndSavePatient(FormDefinition formDefinition, Map<String, Object> formData, String language) {
+        log.debug("Extracting patient data from form fields using field mappings: {}", formData.keySet());
 
-        // Extract required fields with fallbacks
-        String firstName = extractField(formData, "firstName", "first_name", "vorname");
-        String lastName = extractField(formData, "lastName", "last_name", "nachname", "familienname");
-        String birthDateStr = extractField(formData, "birthDate", "birth_date", "geburtsdatum", "dateOfBirth");
+        // Get field mappings from form definition
+        Map<String, String> mappedFields = fieldTypeService.getMappedFields(formDefinition);
+        log.debug("Using field mappings: {}", mappedFields);
 
-        // Validate required fields
+        // Extract values using mappings
+        Map<String, String> patientData = new java.util.HashMap<>();
+        for (Map.Entry<String, String> mapping : mappedFields.entrySet()) {
+            String schemaFieldName = mapping.getKey();       // e.g., "vorname", "email_adresse"
+            String canonicalName = mapping.getValue();        // e.g., "firstName", "email"
+
+            Object value = formData.get(schemaFieldName);
+            if (value != null) {
+                patientData.put(canonicalName, value.toString().trim());
+            }
+        }
+
+        // Extract and validate required fields
+        String firstName = patientData.get("firstName");
+        String lastName = patientData.get("lastName");
+        String birthDateStr = patientData.get("birthDate");
+
         if (firstName == null || firstName.isBlank()) {
-            throw new IllegalArgumentException("First name is required but not found in form data");
+            throw new IllegalArgumentException("First name (firstName) is required but not found in mapped form data");
         }
         if (lastName == null || lastName.isBlank()) {
-            throw new IllegalArgumentException("Last name is required but not found in form data");
+            throw new IllegalArgumentException("Last name (lastName) is required but not found in mapped form data");
         }
         if (birthDateStr == null || birthDateStr.isBlank()) {
-            throw new IllegalArgumentException("Birth date is required but not found in form data");
+            throw new IllegalArgumentException("Birth date (birthDate) is required but not found in mapped form data");
         }
 
         // Parse birthdate
         LocalDate birthDate = parseBirthDate(birthDateStr);
 
-        // Extract optional fields
-        String email = extractField(formData, "email", "emailAddress", "email_address", "e_mail");
-        String phone = extractField(formData, "phone", "phoneNumber", "telefon", "telefonnummer");
-        String mobile = extractField(formData, "mobile", "mobileNumber", "mobilnummer", "handy");
-        String street = extractField(formData, "street", "strasse", "address");
-        String zipCode = extractField(formData, "zipCode", "zip_code", "plz", "postalCode");
-        String city = extractField(formData, "city", "stadt", "ort");
-        String gender = extractField(formData, "gender", "geschlecht");
+        // Extract optional fields (may be null)
+        String email = patientData.get("email");
+        String phone = patientData.get("phone");
+        String mobile = patientData.get("mobile");
+        String street = patientData.get("street");
+        String zipCode = patientData.get("zipCode");
+        String city = patientData.get("city");
+        String gender = patientData.get("gender");
+        String insuranceTypeStr = patientData.get("insuranceType");
+
+        // Parse insurance type
+        InsuranceType insuranceType = parseInsuranceType(insuranceTypeStr);
+
+        // Collect unmapped fields into customFields JSONB
+        ObjectNode customFields = objectMapper.createObjectNode();
+        for (Map.Entry<String, Object> entry : formData.entrySet()) {
+            String fieldName = entry.getKey();
+            // If field is not in mappedFields, it's a custom field
+            if (!mappedFields.containsKey(fieldName)) {
+                Object value = entry.getValue();
+                if (value != null) {
+                    customFields.put(fieldName, value.toString());
+                }
+            }
+        }
 
         // Check if patient exists (by email or name+birthdate combination)
         Optional<Patient> existingPatient = findExistingPatient(email, firstName, lastName, birthDate);
@@ -145,7 +175,7 @@ public class FormSubmissionService {
             log.info("Found existing patient: {}", existingPatient.get().getId());
             Patient patient = existingPatient.get();
             // Update patient data with latest submission
-            updatePatientData(patient, formData, language, email, phone, mobile, street, zipCode, city, gender);
+            updatePatientDataFromMappings(patient, patientData, customFields, language);
             return patientRepository.save(patient);
         } else {
             log.info("Creating new patient: {} {}", firstName, lastName);
@@ -162,10 +192,27 @@ public class FormSubmissionService {
                     .city(city)
                     .gender(gender)
                     .language(language)
-                    .insuranceType(InsuranceType.SELF_INSURED)  // TODO: Default, can be updated later
+                    .insuranceType(insuranceType)
+                    .customFields(customFields.isEmpty() ? null : customFields)
                     .build();
 
             return patientRepository.save(newPatient);
+        }
+    }
+
+    /**
+     * Parse insurance type from string value.
+     */
+    private InsuranceType parseInsuranceType(String insuranceTypeStr) {
+        if (insuranceTypeStr == null || insuranceTypeStr.isBlank()) {
+            return InsuranceType.SELF_INSURED;  // Default
+        }
+
+        try {
+            return InsuranceType.valueOf(insuranceTypeStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid insurance type: {}, defaulting to SELF_INSURED", insuranceTypeStr);
+            return InsuranceType.SELF_INSURED;
         }
     }
 
@@ -248,47 +295,94 @@ public class FormSubmissionService {
     }
 
     /**
-     * Update existing patient data with latest submission.
+     * Update existing patient data with latest submission using mapped field data.
+     *
+     * @param patient       the existing patient to update
+     * @param patientData   mapped patient data (canonical names -> values)
+     * @param customFields  unmapped custom fields
+     * @param language      submission language
      */
-    private void updatePatientData(Patient patient, Map<String, Object> formData, String language,
-                                    String email, String phone, String mobile, String street,
-                                    String zipCode, String city, String gender) {
-        // Update only non-null fields
+    private void updatePatientDataFromMappings(Patient patient, Map<String, String> patientData,
+                                                ObjectNode customFields, String language) {
+        // Update only non-null mapped fields
+        String email = patientData.get("email");
         if (email != null && !email.isBlank()) {
             patient.setEmailAddress(email);
         }
+
+        String phone = patientData.get("phone");
         if (phone != null && !phone.isBlank()) {
             patient.setPhoneNumber(phone);
         }
+
+        String mobile = patientData.get("mobile");
         if (mobile != null && !mobile.isBlank()) {
             patient.setMobileNumber(mobile);
         }
+
+        String street = patientData.get("street");
         if (street != null && !street.isBlank()) {
             patient.setStreet(street);
         }
+
+        String zipCode = patientData.get("zipCode");
         if (zipCode != null && !zipCode.isBlank()) {
             patient.setZipCode(zipCode);
         }
+
+        String city = patientData.get("city");
         if (city != null && !city.isBlank()) {
             patient.setCity(city);
         }
+
+        String gender = patientData.get("gender");
         if (gender != null && !gender.isBlank()) {
             patient.setGender(gender);
         }
+
         if (language != null && !language.isBlank()) {
             patient.setLanguage(language);
         }
 
-        log.debug("Updated patient {} with latest data", patient.getId());
+        String insuranceTypeStr = patientData.get("insuranceType");
+        if (insuranceTypeStr != null && !insuranceTypeStr.isBlank()) {
+            patient.setInsuranceType(parseInsuranceType(insuranceTypeStr));
+        }
+
+        // Update custom fields
+        if (customFields != null && !customFields.isEmpty()) {
+            patient.setCustomFields(customFields);
+        }
+
+        log.debug("Updated patient {} with latest mapped data", patient.getId());
     }
 
     /**
      * Convert Map to JsonNode for storage.
+     * Preserves type information (boolean, number, string) for accurate PDF rendering.
      */
     private JsonNode convertToJsonNode(Map<String, Object> formData) {
         ObjectNode jsonNode = objectMapper.createObjectNode();
         formData.forEach((key, value) -> {
-            if (value != null) {
+            if (value == null) {
+                jsonNode.putNull(key);
+            } else if (value instanceof Boolean) {
+                jsonNode.put(key, (Boolean) value);
+            } else if (value instanceof Integer) {
+                jsonNode.put(key, (Integer) value);
+            } else if (value instanceof Long) {
+                jsonNode.put(key, (Long) value);
+            } else if (value instanceof Double) {
+                jsonNode.put(key, (Double) value);
+            } else if (value instanceof Float) {
+                jsonNode.put(key, (Float) value);
+            } else if (value instanceof String[]) {
+                com.fasterxml.jackson.databind.node.ArrayNode arrayNode = jsonNode.putArray(key);
+                for (String item : (String[]) value) {
+                    arrayNode.add(item);
+                }
+            } else {
+                // Default: convert to string
                 jsonNode.put(key, value.toString());
             }
         });

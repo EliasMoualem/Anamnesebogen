@@ -32,6 +32,7 @@ public class FormDefinitionService {
 
     private final FormDefinitionRepository formDefinitionRepository;
     private final FormTranslationRepository formTranslationRepository;
+    private final FormValidationService formValidationService;
 
     // ========================================================================
     // CRUD Operations
@@ -60,6 +61,7 @@ public class FormDefinitionService {
                 .uiSchema(createDTO.getUiSchema())
                 .validationRules(createDTO.getValidationRules())
                 .renderingOptions(createDTO.getRenderingOptions())
+                .fieldMappings(createDTO.getFieldMappings())
                 .createdBy(createDTO.getCreatedBy())
                 .build();
 
@@ -104,6 +106,11 @@ public class FormDefinitionService {
         formDefinition.setUiSchema(updateDTO.getUiSchema());
         formDefinition.setValidationRules(updateDTO.getValidationRules());
         formDefinition.setRenderingOptions(updateDTO.getRenderingOptions());
+
+        // Update field mappings if provided
+        if (updateDTO.getFieldMappings() != null) {
+            formDefinition.setFieldMappings(updateDTO.getFieldMappings());
+        }
 
         // Handle default flag
         if (updateDTO.getIsDefault() != null && updateDTO.getIsDefault() && !formDefinition.getIsDefault()) {
@@ -235,6 +242,9 @@ public class FormDefinitionService {
 
         FormDefinition formDefinition = formDefinitionRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Form definition not found: " + id));
+
+        // Validate field mappings before publishing
+        formValidationService.validateFieldMappings(formDefinition);
 
         // Publish the form
         formDefinition.publish(publishedBy);
@@ -444,6 +454,7 @@ public class FormDefinitionService {
                 .uiSchema(entity.getUiSchema())
                 .validationRules(entity.getValidationRules())
                 .renderingOptions(entity.getRenderingOptions())
+                .fieldMappings(entity.getFieldMappings())
                 .translations(translationDTOs)
                 .submissionCount(submissionCount)
                 .createdAt(entity.getCreatedAt())

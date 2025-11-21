@@ -38,6 +38,9 @@ class FormDefinitionServiceTest {
     @Mock
     private FormTranslationRepository formTranslationRepository;
 
+    @Mock
+    private FormValidationService formValidationService;
+
     @InjectMocks
     private FormDefinitionService formDefinitionService;
 

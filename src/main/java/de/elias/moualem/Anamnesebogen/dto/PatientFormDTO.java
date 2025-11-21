@@ -16,7 +16,6 @@ import java.util.UUID;
  * This DTO is used for binding form data from all patients (both minor and adult).
  * The name "PatientFormDTO" reflects its purpose: binding web form input.
  *
- * Previously named "MinorPatient" (confusing since it handles all patients, not just minors).
  */
 @Data
 @RequiredArgsConstructor

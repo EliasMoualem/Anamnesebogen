@@ -60,6 +60,12 @@ public class FormDefinitionDTO {
     private JsonNode renderingOptions;
 
     /**
+     * Field mappings from schema field names to canonical field types.
+     * Example: {"vorname": "FIRST_NAME", "nachname": "LAST_NAME"}
+     */
+    private JsonNode fieldMappings;
+
+    /**
      * Translations for this form in different languages.
      */
     @Builder.Default

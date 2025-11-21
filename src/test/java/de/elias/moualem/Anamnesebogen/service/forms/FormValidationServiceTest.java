@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,15 +16,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for FormValidationService.
  */
+@ExtendWith(MockitoExtension.class)
 class FormValidationServiceTest {
 
     private FormValidationService validationService;
     private ObjectMapper objectMapper;
 
+    @Mock
+    private FieldTypeService fieldTypeService;
+
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        validationService = new FormValidationService(objectMapper);
+        validationService = new FormValidationService(objectMapper, fieldTypeService);
     }
 
     @Test

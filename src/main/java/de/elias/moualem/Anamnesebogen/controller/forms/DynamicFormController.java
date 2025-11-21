@@ -129,7 +129,12 @@ public class DynamicFormController {
             // Extract form data from request
             Map<String, Object> formData = extractFormData(request);
 
-            log.debug("Extracted form data: {}", formData);
+            log.debug("Extracted form data (raw): {}", formData);
+
+            // Convert form data types based on schema (HTML forms submit everything as strings)
+            formData = convertFormDataTypes(formData, formDefinition.getSchema());
+
+            log.debug("Extracted form data (after type conversion): {}", formData);
 
             // Validate form data against JSON Schema
             FormValidationService.ValidationResult validationResult =
@@ -391,6 +396,97 @@ public class DynamicFormController {
         formData.remove("_csrf");
 
         return formData;
+    }
+
+    /**
+     * Converts form data types from strings to their proper JSON types based on schema.
+     * HTML forms submit all data as strings, but JSON Schema validation requires proper types.
+     *
+     * @param formData Raw form data (all strings)
+     * @param schema   JSON Schema defining field types
+     * @return Form data with converted types
+     */
+    private Map<String, Object> convertFormDataTypes(Map<String, Object> formData,
+                                                      com.fasterxml.jackson.databind.JsonNode schema) {
+        Map<String, Object> converted = new HashMap<>();
+
+        // Get schema properties
+        com.fasterxml.jackson.databind.JsonNode properties = schema.get("properties");
+        if (properties == null || !properties.isObject()) {
+            // No schema properties defined, return as-is
+            return formData;
+        }
+
+        formData.forEach((fieldName, value) -> {
+            // Skip if value is already not a string (array, etc.)
+            if (!(value instanceof String stringValue)) {
+                converted.put(fieldName, value);
+                return;
+            }
+
+            // Get field schema
+            com.fasterxml.jackson.databind.JsonNode fieldSchema = properties.get(fieldName);
+            if (fieldSchema == null) {
+                // Field not in schema, keep as string
+                converted.put(fieldName, value);
+                return;
+            }
+
+            // Get field type
+            com.fasterxml.jackson.databind.JsonNode typeNode = fieldSchema.get("type");
+            if (typeNode == null) {
+                converted.put(fieldName, value);
+                return;
+            }
+
+            String type = typeNode.asText().toLowerCase();
+
+            log.debug("Converting field: {} (type={}, format={}, widget={}, required={})",
+                    fieldName, type,
+                    fieldSchema.has("format") ? fieldSchema.get("format").asText() : "null",
+                    fieldSchema.has("widget") ? fieldSchema.get("widget").asText() : "null",
+                    fieldSchema.has("required") ? fieldSchema.get("required").asBoolean() : false);
+
+            // Convert based on type
+            try {
+                Object convertedValue = switch (type) {
+                    case "boolean" -> {
+                        // Handle checkbox values: "true", "on", "1", "yes"
+                        String lower = stringValue.toLowerCase();
+                        yield "true".equals(lower) || "on".equals(lower) ||
+                                "1".equals(lower) || "yes".equals(lower);
+                    }
+                    case "integer" -> {
+                        if (stringValue.trim().isEmpty()) {
+                            yield null;
+                        }
+                        yield Integer.parseInt(stringValue.trim());
+                    }
+                    case "number" -> {
+                        if (stringValue.trim().isEmpty()) {
+                            yield null;
+                        }
+                        yield Double.parseDouble(stringValue.trim());
+                    }
+                    case "array" -> {
+                        // Arrays might come as comma-separated strings or multiple values
+                        if (stringValue.trim().isEmpty()) {
+                            yield new String[0];
+                        }
+                        yield stringValue.split(",");
+                    }
+                    default -> stringValue; // string, date, etc. - keep as string
+                };
+
+                converted.put(fieldName, convertedValue);
+            } catch (NumberFormatException e) {
+                log.warn("Failed to convert field {} to type {}: {}", fieldName, type, e.getMessage());
+                // Keep original value if conversion fails
+                converted.put(fieldName, value);
+            }
+        });
+
+        return converted;
     }
 
     /**

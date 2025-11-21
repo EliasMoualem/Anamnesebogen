@@ -6,6 +6,7 @@ import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
+import de.elias.moualem.Anamnesebogen.entity.FormDefinition;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import java.util.*;
  * Service for validating form data against JSON Schema definitions.
  * Uses the NetworkNT JSON Schema Validator library to ensure submitted
  * data conforms to the schema defined in FormDefinition.
+ * Also validates field mappings to ensure required fields are properly mapped.
  */
 @Slf4j
 @Service
@@ -24,6 +26,7 @@ import java.util.*;
 public class FormValidationService {
 
     private final ObjectMapper objectMapper;
+    private final FieldTypeService fieldTypeService;
 
     /**
      * Validates form data against a JSON Schema.
@@ -108,6 +111,30 @@ public class FormValidationService {
         }
 
         return path;
+    }
+
+    /**
+     * Validates that all required field types are properly mapped in a form definition.
+     * This validation ensures that a form can be published only if all required fields
+     * (e.g., firstName, lastName, birthDate) are mapped from schema fields to canonical field types.
+     *
+     * @param formDefinition the form definition to validate
+     * @throws IllegalStateException if required field mappings are missing
+     */
+    public void validateFieldMappings(FormDefinition formDefinition) {
+        log.debug("Validating field mappings for form definition: {}", formDefinition.getId());
+
+        List<String> validationErrors = fieldTypeService.validateRequiredFieldMappings(formDefinition);
+
+        if (!validationErrors.isEmpty()) {
+            String errorMessage = String.join("; ", validationErrors);
+            log.error("Field mapping validation failed for form {}: {}", formDefinition.getId(), errorMessage);
+            throw new IllegalStateException(
+                "Form cannot be published due to missing required field mappings: " + errorMessage
+            );
+        }
+
+        log.debug("Field mapping validation passed for form: {}", formDefinition.getId());
     }
 
     /**

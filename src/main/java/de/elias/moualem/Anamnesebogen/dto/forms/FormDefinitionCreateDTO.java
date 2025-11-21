@@ -57,6 +57,14 @@ public class FormDefinitionCreateDTO {
     private JsonNode renderingOptions;
 
     /**
+     * Field mappings from schema field names to canonical field types.
+     * Example: {"vorname": "FIRST_NAME", "nachname": "LAST_NAME", "geburtsdatum": "BIRTH_DATE"}
+     * Used to map dynamic form fields to Patient entity properties during submission processing.
+     * Optional field - can be set during form creation or added later before publishing.
+     */
+    private JsonNode fieldMappings;
+
+    /**
      * Set this form as the default for its category.
      * Optional, defaults to false.
      */

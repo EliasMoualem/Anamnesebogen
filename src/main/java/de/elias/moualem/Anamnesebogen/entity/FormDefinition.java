@@ -88,6 +88,16 @@ public class FormDefinition {
     private JsonNode renderingOptions;
 
     /**
+     * Field mappings from schema field names to canonical field types.
+     * Example: {"vorname": "FIRST_NAME", "nachname": "LAST_NAME", "geburtsdatum": "BIRTH_DATE"}
+     * Used to map dynamic form fields to Patient entity properties during submission processing.
+     */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "field_mappings", columnDefinition = "jsonb")
+    @Builder.Default
+    private JsonNode fieldMappings = null;
+
+    /**
      * Translations for this form in different languages.
      * Cascade: Delete translations when form is deleted.
      */
