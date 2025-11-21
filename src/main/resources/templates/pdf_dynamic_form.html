@@ -2,17 +2,28 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title th:text="${formDefinition.name}">Form PDF</title>
+    <title th:text="${formDefinition.name}">Medical Form PDF</title>
     <style>
+        /* Global Reset and Base Styles */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        @page {
+            size: A4;
+            margin: 15mm;
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 8pt;
+                color: #666;
+            }
+        }
+
         body {
-            font-family: 'Arial', 'Helvetica', sans-serif;
-            font-size: 11pt;
+            font-family: 'Arial', 'Helvetica', 'DejaVu Sans', sans-serif;
+            font-size: 10pt;
             line-height: 1.4;
             color: #333;
             direction: ltr;
@@ -26,88 +37,150 @@
             width: 100%;
             max-width: 800px;
             margin: 0 auto;
-            padding: 20px;
         }
 
-        /* Header Section */
+        /* ========================================
+           HEADER SECTION - Practice Branding
+        ======================================== */
         .header {
             text-align: center;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+            border-bottom: 4px solid #4A90E2;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .practice-name {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #4A90E2;
+            margin-bottom: 8px;
+        }
+
+        .practice-contact {
+            font-size: 9pt;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .practice-contact div {
+            margin: 2px 0;
         }
 
         .header img {
-            max-width: 150px;
+            max-width: 120px;
             height: auto;
             margin-bottom: 10px;
         }
 
-        .header h1 {
-            font-size: 20pt;
-            color: #667eea;
-            margin-bottom: 5px;
+        .form-title {
+            font-size: 14pt;
             font-weight: bold;
+            color: #333;
+            margin-top: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5pt;
         }
 
-        .header .form-description {
-            font-size: 10pt;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        /* Metadata Section */
-        .metadata {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 25px;
+        /* ========================================
+           FORM METADATA BOX
+        ======================================== */
+        .metadata-box {
+            background: #f5f8fa;
+            border: 1px solid #d0dce6;
+            border-left: 4px solid #4A90E2;
+            padding: 12px 15px;
+            margin-bottom: 20px;
             font-size: 9pt;
         }
 
         .metadata-row {
-            display: table;
-            width: 100%;
+            display: inline-block;
+            margin-right: 25px;
             margin-bottom: 5px;
         }
 
         .metadata-label {
-            display: table-cell;
-            width: 30%;
             font-weight: bold;
             color: #555;
         }
 
         .metadata-value {
-            display: table-cell;
-            width: 70%;
             color: #333;
+            margin-left: 5px;
         }
 
-        /* Form Fields Section */
-        .form-fields {
-            margin-bottom: 30px;
-        }
-
-        .field-group {
-            margin-bottom: 20px;
+        /* ========================================
+           CATEGORY SECTIONS
+        ======================================== */
+        .category-section {
+            margin-bottom: 25px;
             page-break-inside: avoid;
         }
 
-        .field-label {
+        .category-header {
+            background: #4A90E2;
+            color: white;
+            padding: 8px 12px;
+            font-size: 11pt;
             font-weight: bold;
-            color: #444;
-            margin-bottom: 5px;
-            font-size: 10pt;
+            margin-bottom: 12px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5pt;
+        }
+
+        /* ========================================
+           TWO-COLUMN FIELD LAYOUT
+        ======================================== */
+        .fields-grid {
+            display: table;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .fields-row {
+            display: table-row;
+        }
+
+        .field-cell {
+            display: table-cell;
+            width: 50%;
+            padding: 8px 10px;
+            vertical-align: top;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .field-cell:first-child {
+            padding-right: 15px;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .field-cell:last-child {
+            padding-left: 15px;
+        }
+
+        /* Single field spanning full width */
+        .field-cell.full-width {
+            width: 100%;
+            border-right: none;
+        }
+
+        .field-label {
+            font-size: 9pt;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 4px;
+            display: block;
         }
 
         .field-value {
-            background: #f5f5f5;
-            padding: 10px;
-            border-left: 3px solid #667eea;
-            min-height: 25px;
-            word-wrap: break-word;
             font-size: 10pt;
+            color: #000;
+            padding: 6px 8px;
+            background: #fafafa;
+            border-left: 2px solid #4A90E2;
+            min-height: 28px;
+            word-wrap: break-word;
         }
 
         .field-value.empty {
@@ -115,179 +188,240 @@
             font-style: italic;
         }
 
-        /* Table for structured data */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        .data-table th {
-            background: #667eea;
-            color: white;
-            padding: 10px;
-            text-align: left;
-            font-weight: bold;
+        /* Special styling for boolean/radio fields */
+        .field-value.radio-field {
+            background: transparent;
+            padding: 4px 0;
+            border-left: none;
             font-size: 10pt;
         }
 
-        .data-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            font-size: 10pt;
+        /* ========================================
+           SIGNATURE SECTION
+        ======================================== */
+        .signature-section {
+            margin-top: 30px;
+            page-break-inside: avoid;
         }
 
-        .data-table tr:nth-child(even) {
-            background: #f9f9f9;
+        .signature-box {
+            border: 1px solid #d0dce6;
+            padding: 15px;
+            background: #fafafa;
+            margin-top: 10px;
         }
 
-        /* Footer */
+        .signature-image {
+            max-width: 250px;
+            height: auto;
+            border: 1px solid #ccc;
+            padding: 5px;
+            background: white;
+        }
+
+        .signature-meta {
+            margin-top: 10px;
+            font-size: 8pt;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* ========================================
+           FOOTER
+        ======================================== */
         .footer {
-            margin-top: 50px;
-            padding-top: 20px;
-            border-top: 2px solid #ddd;
+            margin-top: 40px;
+            padding-top: 15px;
+            border-top: 2px solid #d0dce6;
             text-align: center;
             font-size: 8pt;
             color: #666;
         }
 
-        .footer .timestamp {
-            margin-top: 5px;
+        .footer-practice-info {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .footer-timestamp {
+            margin-top: 8px;
             font-style: italic;
+            color: #888;
         }
 
-        /* Section Headers */
-        .section-header {
-            font-size: 14pt;
-            font-weight: bold;
-            color: #667eea;
-            margin-top: 25px;
-            margin-bottom: 15px;
-            padding-bottom: 5px;
-            border-bottom: 2px solid #667eea;
+        .footer-form-id {
+            margin-top: 5px;
+            font-size: 7pt;
+            color: #aaa;
         }
 
-        /* Page breaks */
+        /* ========================================
+           UTILITY CLASSES
+        ======================================== */
         .page-break {
             page-break-after: always;
         }
 
-        /* Signature section */
-        .signature-section {
-            margin-top: 40px;
+        .no-break {
             page-break-inside: avoid;
         }
 
-        .signature-image {
-            max-width: 300px;
-            height: auto;
-            border: 1px solid #ddd;
-            padding: 5px;
-            background: white;
+        .text-center {
+            text-align: center;
         }
 
-        /* Two-column layout for compact display */
-        .two-column {
-            display: table;
-            width: 100%;
+        .text-right {
+            text-align: right;
         }
 
-        .column {
-            display: table-cell;
-            width: 50%;
-            padding-right: 10px;
+        .mt-20 {
+            margin-top: 20px;
         }
 
-        .column:last-child {
-            padding-right: 0;
-            padding-left: 10px;
+        .mb-10 {
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body th:classappend="${isRtl ? 'rtl' : ''}">
     <div class="container">
-        <!-- Header -->
+        <!-- ==========================================
+             HEADER - Practice Branding
+        =========================================== -->
         <div class="header">
-            <img th:if="${logoImage}" th:src="'data:image/png;base64,' + ${logoImage}" alt="Logo"/>
-            <h1 th:text="${formDefinition.name}">Form Title</h1>
-            <div th:if="${formDefinition.description}"
-                 class="form-description"
-                 th:text="${formDefinition.description}">Form Description</div>
-        </div>
+            <img th:if="${logoImage}" th:src="'data:image/png;base64,' + ${logoImage}" alt="Practice Logo"/>
 
-        <!-- Metadata -->
-        <div class="metadata">
-            <div class="metadata-row">
-                <div class="metadata-label">Form Category:</div>
-                <div class="metadata-value" th:text="${formDefinition.category}">ANAMNESIS</div>
+            <div class="practice-name" th:text="${practiceName ?: 'Medical Practice'}">
+                Kieferorthopädie Dr. Ehab Srur
             </div>
-            <div class="metadata-row">
-                <div class="metadata-label">Form Version:</div>
-                <div class="metadata-value" th:text="${formDefinition.version}">1.0.0</div>
-            </div>
-            <div class="metadata-row">
-                <div class="metadata-label">Generated At:</div>
-                <div class="metadata-value" th:text="${#temporals.format(generatedAt, 'dd.MM.yyyy HH:mm:ss')}">01.01.2025 12:00:00</div>
-            </div>
-        </div>
 
-        <!-- Section: Submitted Data -->
-        <div class="section-header">Submitted Information</div>
+            <div class="practice-contact">
+                <div th:if="${practiceAddress}" th:text="${practiceAddress}">
+                    Schleswigerstraße 14, 18109 Rostock
+                </div>
+                <div>
+                    <span th:if="${practicePhone}">
+                        Tel: <span th:text="${practicePhone}">+493817699779</span>
+                    </span>
+                    <span th:if="${practiceEmail}" style="margin-left: 15px;">
+                        Email: <span th:text="${practiceEmail}">praxis@kfo-rostock.de</span>
+                    </span>
+                </div>
+                <div th:if="${practiceWebsite}" th:text="${practiceWebsite}">
+                    www.kfo-rostock.de
+                </div>
+            </div>
 
-        <!-- Display all form fields in order using formattedData -->
-        <div class="form-fields">
-            <div th:each="entry : ${formattedData}" class="field-group">
-                <div class="field-value" th:text="${entry.value}">Label: Value</div>
+            <div class="form-title" th:text="${formDefinition.name}">
+                Patient Medical History Form
             </div>
         </div>
 
-        <!-- Section: Signatures -->
+        <!-- ==========================================
+             METADATA BOX
+        =========================================== -->
+        <div class="metadata-box">
+            <div class="metadata-row">
+                <span class="metadata-label">Form Category:</span>
+                <span class="metadata-value" th:text="${formDefinition.category}">ANAMNESIS</span>
+            </div>
+            <div class="metadata-row">
+                <span class="metadata-label">Version:</span>
+                <span class="metadata-value" th:text="${formDefinition.version}">1.0.0</span>
+            </div>
+            <div class="metadata-row">
+                <span class="metadata-label">Generated:</span>
+                <span class="metadata-value" th:text="${#temporals.format(generatedAt, 'dd.MM.yyyy HH:mm')}">01.01.2025 12:00</span>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             FORM FIELDS - GROUPED BY CATEGORY
+        =========================================== -->
+
+        <!-- Iterate through each category section -->
+        <div th:each="categoryEntry : ${groupedData}" class="category-section">
+            <!-- Category Header -->
+            <div class="category-header" th:text="${categoryEntry.key}">
+                PERSONAL INFORMATION
+            </div>
+
+            <!-- Fields in two-column grid -->
+            <div class="fields-grid">
+                <!-- Create rows of 2 fields each -->
+                <th:block th:with="fields=${categoryEntry.value}">
+                    <th:block th:each="field, iterStat : ${fields}">
+                        <!-- Start new row every 2 fields -->
+                        <div th:if="${iterStat.index % 2 == 0}" class="fields-row">
+                            <!-- First column -->
+                            <div class="field-cell">
+                                <span class="field-label" th:text="${#strings.substringBefore(field.value, ':')}">Field Label</span>
+                                <div class="field-value"
+                                     th:classappend="${#strings.contains(field.value, '(X)') or #strings.contains(field.value, '( )') or #strings.contains(field.value, '[X]') ? 'radio-field' : ''}"
+                                     th:text="${#strings.substringAfter(field.value, ': ')}">
+                                    Field Value
+                                </div>
+                            </div>
+
+                            <!-- Second column (if exists) -->
+                            <th:block th:with="nextField=${fields.size() > iterStat.index + 1 ? fields.entrySet().toArray()[iterStat.index + 1] : null}">
+                                <div th:if="${nextField != null}" class="field-cell">
+                                    <span class="field-label" th:text="${#strings.substringBefore(nextField.value, ':')}">Field Label</span>
+                                    <div class="field-value"
+                                         th:classappend="${#strings.contains(nextField.value, '(X)') or #strings.contains(nextField.value, '( )') or #strings.contains(nextField.value, '[X]') ? 'radio-field' : ''}"
+                                         th:text="${#strings.substringAfter(nextField.value, ': ')}">
+                                        Field Value
+                                    </div>
+                                </div>
+                                <!-- Empty cell if no next field (odd number of fields) -->
+                                <div th:if="${nextField == null}" class="field-cell"></div>
+                            </th:block>
+                        </div>
+                    </th:block>
+                </th:block>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             SIGNATURES SECTION
+        =========================================== -->
         <div th:if="${signatures != null and !signatures.isEmpty()}" class="signature-section">
-            <div class="section-header">Signatures</div>
-            <div th:each="entry : ${signatures}" class="field-group">
+            <div class="category-header">SIGNATURES</div>
+
+            <div th:each="entry : ${signatures}" class="signature-box">
                 <div class="field-label">Digital Signature</div>
-                <div style="padding: 10px; background: #f9f9f9; border-left: 3px solid #667eea;">
-                    <img th:src="'data:image/png;base64,' + ${entry.value.base64Image}"
-                         class="signature-image"
-                         alt="Signature" />
-                    <div style="margin-top: 10px; font-size: 8pt; color: #666;">
-                        <div><strong>Signature ID:</strong> <span th:text="${entry.value.uuid}">UUID</span></div>
-                        <div><strong>Signer:</strong> <span th:text="${entry.value.signerName}">Name</span></div>
-                        <div><strong>Signed At:</strong> <span th:text="${#temporals.format(entry.value.signedAt, 'dd.MM.yyyy HH:mm:ss')}">Timestamp</span></div>
-                        <div><strong>Integrity Hash:</strong> <span th:text="${entry.value.hash}" style="font-family: monospace; font-size: 7pt;">Hash</span></div>
-                    </div>
+                <img th:src="'data:image/png;base64,' + ${entry.value.base64Image}"
+                     class="signature-image"
+                     alt="Signature" />
+
+                <div class="signature-meta">
+                    <div><strong>Signature ID:</strong> <span th:text="${entry.value.uuid}">UUID</span></div>
+                    <div><strong>Signer:</strong> <span th:text="${entry.value.signerName}">Name</span></div>
+                    <div><strong>Signed At:</strong> <span th:text="${#temporals.format(entry.value.signedAt, 'dd.MM.yyyy HH:mm:ss')}">Timestamp</span></div>
+                    <div><strong>Integrity Hash:</strong> <span th:text="${entry.value.hash}" style="font-family: monospace; font-size: 7pt;">Hash</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- Alternative: Display as table (uncomment if preferred) -->
-        <!--
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th style="width: 35%;">Field</th>
-                    <th style="width: 65%;">Value</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="entry : ${submissionData}">
-                    <td th:text="${entry.key}">Field Name</td>
-                    <td th:text="${entry.value != null ? entry.value : '-'}">Value</td>
-                </tr>
-            </tbody>
-        </table>
-        -->
-
-        <!-- Footer -->
+        <!-- ==========================================
+             FOOTER
+        =========================================== -->
         <div class="footer">
-            <div>This document was automatically generated from a digital form submission.</div>
-            <div class="timestamp">
-                Generated on
+            <div class="footer-practice-info">
+                <strong th:text="${practiceName ?: 'Medical Practice'}">Kieferorthopädie Dr. Ehab Srur</strong><br/>
+                <span th:if="${practiceAddress}" th:text="${practiceAddress}">Schleswigerstraße 14, 18109 Rostock</span><br/>
+                <span th:if="${practicePhone}">Tel: <span th:text="${practicePhone}">+493817699779</span></span>
+                <span th:if="${practiceEmail}"> • Email: <span th:text="${practiceEmail}">praxis@kfo-rostock.de</span></span>
+            </div>
+
+            <div class="footer-timestamp">
+                This document was automatically generated on
                 <span th:text="${#temporals.format(generatedAt, 'dd.MM.yyyy')}">01.01.2025</span>
                 at
                 <span th:text="${#temporals.format(generatedAt, 'HH:mm')}">12:00</span>
             </div>
-            <div style="margin-top: 10px; font-size: 7pt;">
+
+            <div class="footer-form-id">
                 Form ID: <span th:text="${formDefinition.id}">UUID</span>
             </div>
         </div>

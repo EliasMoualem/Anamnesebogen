@@ -1,16 +1,18 @@
 package de.elias.moualem.Anamnesebogen.service.forms;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.elias.moualem.Anamnesebogen.dto.forms.FormTranslationDTO;
+import de.elias.moualem.Anamnesebogen.entity.FieldType;
 import de.elias.moualem.Anamnesebogen.entity.FormDefinition;
 import de.elias.moualem.Anamnesebogen.entity.FormSubmission;
 import de.elias.moualem.Anamnesebogen.entity.Patient;
 import de.elias.moualem.Anamnesebogen.entity.Signature;
 import de.elias.moualem.Anamnesebogen.repository.SignatureRepository;
+import de.elias.moualem.Anamnesebogen.repository.forms.FieldTypeRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -21,6 +23,7 @@ import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -44,50 +47,24 @@ public class DynamicFormPdfService {
     private final FormTranslationService translationService;
     private final FormSubmissionService submissionService;
     private final TemplateEngine templateEngine;
-    private final ObjectMapper objectMapper;
     private final SignatureRepository signatureRepository;
+    private final FieldTypeRepository fieldTypeRepository;
 
-    /**
-     * Generate PDF from form submission data.
-     *
-     * @param formId       Form definition ID
-     * @param submissionData Form submission data as JSON
-     * @param language     Language code
-     * @return PDF file
-     * @throws Exception If PDF generation fails
-     */
-    public File generatePdfFromSubmission(UUID formId, Map<String, Object> submissionData, String language) throws Exception {
-        log.info("Generating PDF for form={}, language={}", formId, language);
+    // Practice branding configuration
+    @Value("${pdf.practice.name:}")
+    private String practiceName;
 
-        // Load form definition
-        FormDefinition formDefinition = formDefinitionService.getFormById(formId);
+    @Value("${pdf.practice.address:}")
+    private String practiceAddress;
 
-        // Load translation
-        FormTranslationDTO translation = null;
-        try {
-            translation = translationService.getTranslation(formId, language);
-        } catch (Exception e) {
-            log.warn("No translation found for form {} in language {}", formId, language);
-        }
+    @Value("${pdf.practice.phone:}")
+    private String practicePhone;
 
-        // Generate HTML content
-        String html = generatePdfHtml(formDefinition, submissionData, translation, language);
+    @Value("${pdf.practice.email:}")
+    private String practiceEmail;
 
-        // Create temporary PDF file
-        Path tempFile = Files.createTempFile("form_" + formId + "_", ".pdf");
-        File pdfFile = tempFile.toFile();
-
-        // Convert HTML to PDF
-        try (FileOutputStream outputStream = new FileOutputStream(pdfFile)) {
-            ITextRenderer renderer = new ITextRenderer();
-            renderer.setDocumentFromString(html);
-            renderer.layout();
-            renderer.createPDF(outputStream);
-        }
-
-        log.info("PDF generated: {}", pdfFile.getAbsolutePath());
-        return pdfFile;
-    }
+    @Value("${pdf.practice.website:}")
+    private String practiceWebsite;
 
     /**
      * Generate PDF from FormSubmission entity.
@@ -147,9 +124,9 @@ public class DynamicFormPdfService {
         Path tempFile = Files.createTempFile("submission_" + submissionId + "_", ".pdf");
         File pdfFile = tempFile.toFile();
 
-        // Convert HTML to PDF
+        // Convert HTML to PDF with proper UTF-8 font support
         try (FileOutputStream outputStream = new FileOutputStream(pdfFile)) {
-            ITextRenderer renderer = new ITextRenderer();
+            ITextRenderer renderer = createPdfRenderer();
             renderer.setDocumentFromString(html);
             renderer.layout();
             renderer.createPDF(outputStream);
@@ -244,8 +221,20 @@ public class DynamicFormPdfService {
         context.setVariable("generatedAt", LocalDateTime.now());
 
         // Add formatted submission data for display
-        Map<String, String> formattedData = formatSubmissionData(formDefinition, submissionData, translation);
+        Map<String, String> formattedData = formatSubmissionData(formDefinition, submissionData, translation, language);
         context.setVariable("formattedData", formattedData);
+
+        // Group fields by category for section-based layout
+        Map<FieldType.FieldCategory, Map<String, String>> groupedData =
+            groupFieldsByCategory(formDefinition, formattedData, submissionData);
+        context.setVariable("groupedData", groupedData);
+
+        // Add practice branding information
+        context.setVariable("practiceName", practiceName);
+        context.setVariable("practiceAddress", practiceAddress);
+        context.setVariable("practicePhone", practicePhone);
+        context.setVariable("practiceEmail", practiceEmail);
+        context.setVariable("practiceWebsite", practiceWebsite);
 
         // Load logo if available
         try {
@@ -274,7 +263,8 @@ public class DynamicFormPdfService {
      */
     private Map<String, String> formatSubmissionData(FormDefinition formDefinition,
                                                       Map<String, Object> submissionData,
-                                                      FormTranslationDTO translation) {
+                                                      FormTranslationDTO translation,
+                                                      String language) {
         // Use LinkedHashMap to preserve insertion order
         Map<String, String> formatted = new LinkedHashMap<>();
 
@@ -305,14 +295,24 @@ public class DynamicFormPdfService {
                 continue;
             }
 
+            // Skip consent fields from PDF display (GDPR consent is implicit)
+            if (isConsentField(fieldName)) {
+                log.debug("Skipping consent field '{}' from PDF", fieldName);
+                continue;
+            }
+
             // Get value using case-insensitive lookup
             Object value = getCaseInsensitiveValue(submissionData, fieldName);
 
             // Get field label
             String label = getFieldLabel(fieldName, fieldSchema, translation);
 
+            // Get UI schema for this field (contains widget info)
+            JsonNode fieldUiSchema = (uiSchema != null && uiSchema.has(fieldName))
+                ? uiSchema.get(fieldName) : null;
+
             // Format value based on type (handles null values)
-            String formattedValue = formatValue(value, fieldSchema);
+            String formattedValue = formatValue(value, fieldSchema, fieldUiSchema, language);
 
             log.debug("Formatting field '{}': label='{}', value='{}', formatted='{}'",
                 fieldName, label, value, formattedValue);
@@ -321,6 +321,19 @@ public class DynamicFormPdfService {
         }
 
         return formatted;
+    }
+
+    /**
+     * Checks if a field is a consent field that should be excluded from PDF.
+     */
+    private boolean isConsentField(String fieldName) {
+        String lowerName = fieldName.toLowerCase();
+        return lowerName.contains("consent") ||
+               lowerName.contains("einwilligung") ||
+               lowerName.contains("dataprocessing") ||
+               lowerName.contains("datenverarbeitung") ||
+               lowerName.contains("gdpr") ||
+               lowerName.contains("dsgvo");
     }
 
     /**
@@ -345,51 +358,183 @@ public class DynamicFormPdfService {
     }
 
     /**
-     * Formats a value based on its field type.
+     * Formats a value based on its field type for professional medical form display.
+     *
+     * @param value         The field value
+     * @param fieldSchema   JSON Schema for the field (type, enum, format)
+     * @param fieldUiSchema UI Schema for the field (ui:widget)
+     * @param language      Language code (de, en, ar, ru)
+     * @return Formatted string with professional medical form styling
      */
-    private String formatValue(Object value, JsonNode fieldSchema) {
+    private String formatValue(Object value, JsonNode fieldSchema, JsonNode fieldUiSchema, String language) {
         if (value == null) {
             return "-";
         }
 
         String type = fieldSchema.has("type") ? fieldSchema.get("type").asText() : "string";
         String format = fieldSchema.has("format") ? fieldSchema.get("format").asText() : null;
+        String widget = getWidget(fieldUiSchema);
 
         // Handle different types
         switch (type) {
             case "boolean":
-                // Handle both actual booleans and string representations
-                boolean boolValue;
-                if (value instanceof Boolean) {
-                    boolValue = (Boolean) value;
-                } else if (value instanceof String) {
-                    // Fallback for existing submissions with string "true"/"false"
-                    String strValue = ((String) value).toLowerCase();
-                    boolValue = "true".equals(strValue) || "yes".equals(strValue) || "1".equals(strValue);
-                } else {
-                    boolValue = Boolean.TRUE.equals(value);
+                return formatBooleanValue(value, language);
+
+            case "string":
+                // Check if it's a date field
+                if ("date".equals(format) || "date".equals(widget)) {
+                    return formatDateValue(value, language);
                 }
-                return boolValue ? "Yes" : "No";
+                // Check for enum (select/radio)
+                if (fieldSchema.has("enum")) {
+                    // Radio buttons show all options, dropdowns show only selected
+                    if ("radio".equals(widget)) {
+                        return formatRadioValue(value.toString(), fieldSchema, language);
+                    } else {
+                        // Dropdown/select - show only the selected value
+                        return formatSelectValue(value.toString(), fieldSchema);
+                    }
+                }
+                return value.toString();
+
             case "array":
-                return value.toString().replace("[", "").replace("]", "");
+                // Arrays are typically checkboxes
+                return formatCheckboxArray(value, fieldSchema);
+
             default:
                 // Check for enum (select/radio)
-                if (fieldSchema.has("enum") && fieldSchema.has("enumNames")) {
-                    return formatEnumValue(value.toString(), fieldSchema);
+                if (fieldSchema.has("enum")) {
+                    // Radio buttons show all options, dropdowns show only selected
+                    if ("radio".equals(widget)) {
+                        return formatRadioValue(value.toString(), fieldSchema, language);
+                    } else {
+                        return formatSelectValue(value.toString(), fieldSchema);
+                    }
                 }
                 return value.toString();
         }
     }
 
     /**
-     * Formats enum value by looking up the display name.
+     * Gets widget type from UI schema.
      */
-    private String formatEnumValue(String value, JsonNode fieldSchema) {
+    private String getWidget(JsonNode fieldUiSchema) {
+        if (fieldUiSchema != null && fieldUiSchema.has("ui:widget")) {
+            return fieldUiSchema.get("ui:widget").asText();
+        }
+        return null;
+    }
+
+    /**
+     * Formats boolean value as radio button pair.
+     * German: "(X) Ja  ( ) Nein" or "( ) Ja  (X) Nein"
+     * English: "(X) Yes  ( ) No" or "( ) Yes  (X) No"
+     * Uses ASCII-compatible markers for PDF rendering.
+     */
+    private String formatBooleanValue(Object value, String language) {
+        // Handle both actual booleans and string representations
+        boolean boolValue;
+        if (value instanceof Boolean) {
+            boolValue = (Boolean) value;
+        } else if (value instanceof String) {
+            // Fallback for existing submissions with string "true"/"false"
+            String strValue = ((String) value).toLowerCase();
+            boolValue = "true".equals(strValue) || "yes".equals(strValue) || "1".equals(strValue);
+        } else {
+            boolValue = Boolean.TRUE.equals(value);
+        }
+
+        // Determine labels based on language
+        String yesLabel = "de".equalsIgnoreCase(language) ? "Ja" : "Yes";
+        String noLabel = "de".equalsIgnoreCase(language) ? "Nein" : "No";
+
+        // Use ASCII-compatible markers: (X) for selected, ( ) for unselected
+        if (boolValue) {
+            return "(X) " + yesLabel + "   ( ) " + noLabel;
+        } else {
+            return "( ) " + yesLabel + "   (X) " + noLabel;
+        }
+    }
+
+    /**
+     * Formats date value based on language.
+     * German: DD.MM.YYYY
+     * English: MM/DD/YYYY
+     */
+    private String formatDateValue(Object value, String language) {
+        String dateStr = value.toString();
+
+        try {
+            // Parse ISO date format (YYYY-MM-DD)
+            LocalDate date = LocalDate.parse(dateStr);
+
+            if ("de".equalsIgnoreCase(language)) {
+                // German format: DD.MM.YYYY
+                return date.format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+            } else {
+                // English format: MM/DD/YYYY
+                return date.format(java.time.format.DateTimeFormatter.ofPattern("MM/dd/yyyy"));
+            }
+        } catch (Exception e) {
+            // If parsing fails, return as-is
+            log.warn("Failed to parse date value: {}", dateStr);
+            return dateStr;
+        }
+    }
+
+    /**
+     * Formats radio value showing all options with selected one marked.
+     * Example: "( ) Option1  (X) Option2  ( ) Option3"
+     * Uses ASCII-compatible markers for PDF rendering.
+     */
+    private String formatRadioValue(String value, JsonNode fieldSchema, String language) {
+        if (!fieldSchema.has("enum")) {
+            return value;
+        }
+
         JsonNode enumValues = fieldSchema.get("enum");
-        JsonNode enumNames = fieldSchema.get("enumNames");
+        JsonNode enumNames = fieldSchema.has("enumNames") ? fieldSchema.get("enumNames") : null;
+
+        StringBuilder result = new StringBuilder();
 
         for (int i = 0; i < enumValues.size(); i++) {
-            if (enumValues.get(i).asText().equals(value)) {
+            String enumValue = enumValues.get(i).asText();
+            String displayName = (enumNames != null && i < enumNames.size())
+                ? enumNames.get(i).asText()
+                : enumValue;
+
+            if (i > 0) {
+                result.append("   ");
+            }
+
+            // Use ASCII-compatible markers: (X) for selected, ( ) for unselected
+            if (enumValue.equals(value)) {
+                result.append("(X) ").append(displayName);
+            } else {
+                result.append("( ) ").append(displayName);
+            }
+        }
+
+        return result.toString();
+    }
+
+    /**
+     * Formats select/dropdown value showing only the selected value.
+     * Looks up the display name from enumNames if available.
+     */
+    private String formatSelectValue(String value, JsonNode fieldSchema) {
+        if (!fieldSchema.has("enum")) {
+            return value;
+        }
+
+        JsonNode enumValues = fieldSchema.get("enum");
+        JsonNode enumNames = fieldSchema.has("enumNames") ? fieldSchema.get("enumNames") : null;
+
+        // Find the selected value and return its display name
+        for (int i = 0; i < enumValues.size(); i++) {
+            String enumValue = enumValues.get(i).asText();
+            if (enumValue.equals(value)) {
+                // Return the display name if available, otherwise the raw value
                 if (enumNames != null && i < enumNames.size()) {
                     return enumNames.get(i).asText();
                 }
@@ -397,7 +542,104 @@ public class DynamicFormPdfService {
             }
         }
 
+        // Value not found in enum, return as-is
         return value;
+    }
+
+    /**
+     * Formats checkbox array showing checked items.
+     * Example: "[X] Item1, [X] Item3"
+     * Uses ASCII-compatible markers for PDF rendering.
+     */
+    private String formatCheckboxArray(Object value, JsonNode fieldSchema) {
+        String valueStr = value.toString();
+
+        // Remove brackets and split
+        valueStr = valueStr.replace("[", "").replace("]", "");
+
+        if (valueStr.trim().isEmpty()) {
+            return "-";
+        }
+
+        String[] items = valueStr.split(",");
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < items.length; i++) {
+            if (i > 0) {
+                result.append(", ");
+            }
+            // Use ASCII-compatible marker: [X] for checked
+            result.append("[X] ").append(items[i].trim());
+        }
+
+        return result.toString();
+    }
+
+    /**
+     * Groups formatted fields by their field type category for section-based PDF layout.
+     *
+     * @param formDefinition  Form definition with field mappings
+     * @param formattedData   Formatted field data (fieldName -> "label: value")
+     * @param submissionData  Raw submission data
+     * @return Map of category -> fields in that category
+     */
+    private Map<FieldType.FieldCategory, Map<String, String>> groupFieldsByCategory(
+            FormDefinition formDefinition,
+            Map<String, String> formattedData,
+            Map<String, Object> submissionData) {
+
+        // Use LinkedHashMap to preserve category order
+        Map<FieldType.FieldCategory, Map<String, String>> grouped = new LinkedHashMap<>();
+
+        // Initialize all categories with empty maps (preserves consistent order)
+        for (FieldType.FieldCategory category : FieldType.FieldCategory.values()) {
+            grouped.put(category, new LinkedHashMap<>());
+        }
+
+        // Get field mappings from form definition
+        JsonNode fieldMappings = formDefinition.getFieldMappings();
+        if (fieldMappings == null || !fieldMappings.isObject()) {
+            log.warn("No field mappings found in form definition, all fields will be CUSTOM");
+            // Put all fields in CUSTOM category
+            grouped.put(FieldType.FieldCategory.CUSTOM, new LinkedHashMap<>(formattedData));
+            return grouped;
+        }
+
+        // Load all field types from database for quick lookup
+        Map<String, FieldType> fieldTypeCache = new HashMap<>();
+        fieldTypeRepository.findAll().forEach(ft -> fieldTypeCache.put(ft.getFieldType(), ft));
+
+        // Iterate through formatted data and categorize each field
+        for (Map.Entry<String, String> entry : formattedData.entrySet()) {
+            String fieldName = entry.getKey();
+            String formattedValue = entry.getValue();
+
+            // Look up field mapping (e.g., "vorname" -> "FIRST_NAME")
+            String mappedFieldType = null;
+            if (fieldMappings.has(fieldName)) {
+                mappedFieldType = fieldMappings.get(fieldName).asText();
+            }
+
+            // Determine category
+            FieldType.FieldCategory category = FieldType.FieldCategory.CUSTOM; // Default to CUSTOM
+
+            if (mappedFieldType != null && fieldTypeCache.containsKey(mappedFieldType)) {
+                FieldType fieldType = fieldTypeCache.get(mappedFieldType);
+                category = fieldType.getCategory();
+                log.debug("Field '{}' mapped to '{}' in category '{}'", fieldName, mappedFieldType, category);
+            } else {
+                log.debug("Field '{}' not mapped, assigning to CUSTOM category", fieldName);
+            }
+
+            // Add to appropriate category
+            grouped.get(category).put(fieldName, formattedValue);
+        }
+
+        // Remove empty categories to keep PDF clean
+        grouped.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+
+        log.debug("Grouped {} fields into {} categories", formattedData.size(), grouped.size());
+        return grouped;
     }
 
     /**
@@ -426,8 +668,20 @@ public class DynamicFormPdfService {
         }
 
         // Add formatted submission data for display
-        Map<String, String> formattedData = formatSubmissionData(formDefinition, mergedData, translation);
+        Map<String, String> formattedData = formatSubmissionData(formDefinition, mergedData, translation, language);
         context.setVariable("formattedData", formattedData);
+
+        // Group fields by category for section-based layout
+        Map<FieldType.FieldCategory, Map<String, String>> groupedData =
+            groupFieldsByCategory(formDefinition, formattedData, mergedData);
+        context.setVariable("groupedData", groupedData);
+
+        // Add practice branding information
+        context.setVariable("practiceName", practiceName);
+        context.setVariable("practiceAddress", practiceAddress);
+        context.setVariable("practicePhone", practicePhone);
+        context.setVariable("practiceEmail", practiceEmail);
+        context.setVariable("practiceWebsite", practiceWebsite);
 
         // Load logo if available
         try {
@@ -490,6 +744,50 @@ public class DynamicFormPdfService {
             });
         }
         return map;
+    }
+
+    /**
+     * Creates and configures ITextRenderer with proper UTF-8 font support.
+     * This ensures German special characters (ä, ö, ü, ß) render correctly.
+     */
+    private ITextRenderer createPdfRenderer() {
+        ITextRenderer renderer = new ITextRenderer();
+
+        // Register system fonts for proper UTF-8 character support
+        try {
+            org.xhtmlrenderer.pdf.ITextFontResolver fontResolver = renderer.getFontResolver();
+
+            // Try to add Windows fonts directory (contains Arial, etc.)
+            String windowsFonts = "C:/Windows/Fonts";
+            File windowsFontsDir = new File(windowsFonts);
+            if (windowsFontsDir.exists() && windowsFontsDir.isDirectory()) {
+                fontResolver.addFontDirectory(windowsFonts, true);
+                log.debug("Registered Windows fonts directory for PDF rendering");
+            }
+
+            // Try to add Linux fonts directory
+            String[] linuxFontDirs = {"/usr/share/fonts", "/usr/local/share/fonts"};
+            for (String fontDir : linuxFontDirs) {
+                File dir = new File(fontDir);
+                if (dir.exists() && dir.isDirectory()) {
+                    fontResolver.addFontDirectory(fontDir, true);
+                    log.debug("Registered Linux fonts directory: {}", fontDir);
+                }
+            }
+
+            // Try to add macOS fonts directory
+            String macFonts = "/Library/Fonts";
+            File macFontsDir = new File(macFonts);
+            if (macFontsDir.exists() && macFontsDir.isDirectory()) {
+                fontResolver.addFontDirectory(macFonts, true);
+                log.debug("Registered macOS fonts directory for PDF rendering");
+            }
+
+        } catch (Exception e) {
+            log.warn("Could not register system fonts for PDF rendering: {}", e.getMessage());
+        }
+
+        return renderer;
     }
 
     /**
