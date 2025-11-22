@@ -8,6 +8,7 @@ import de.elias.moualem.Anamnesebogen.dto.forms.FormDefinitionUpdateDTO;
 import de.elias.moualem.Anamnesebogen.entity.FormDefinition;
 import de.elias.moualem.Anamnesebogen.entity.FormDefinition.FormCategory;
 import de.elias.moualem.Anamnesebogen.entity.FormDefinition.FormStatus;
+import de.elias.moualem.Anamnesebogen.entity.FormSubmission;
 import de.elias.moualem.Anamnesebogen.repository.forms.FormDefinitionRepository;
 import de.elias.moualem.Anamnesebogen.repository.forms.FormTranslationRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,9 +38,6 @@ class FormDefinitionServiceTest {
 
     @Mock
     private FormTranslationRepository formTranslationRepository;
-
-    @Mock
-    private FormValidationService formValidationService;
 
     @InjectMocks
     private FormDefinitionService formDefinitionService;
@@ -260,23 +258,68 @@ class FormDefinitionServiceTest {
     }
 
     @Test
-    void deleteFormDefinition_PublishedForm_ShouldThrowException() {
+    void deleteFormDefinition_ActiveForm_ShouldThrowException() {
         // Given
         UUID formId = UUID.randomUUID();
-        FormDefinition publishedForm = FormDefinition.builder()
+        FormDefinition activeForm = FormDefinition.builder()
                 .id(formId)
-                .name("Published Form")
+                .name("Active Form")
                 .status(FormStatus.PUBLISHED)
+                .isActive(true)
                 .schema(testSchema)
                 .uiSchema(testUiSchema)
                 .build();
 
-        when(formDefinitionRepository.findById(formId)).thenReturn(Optional.of(publishedForm));
+        when(formDefinitionRepository.findById(formId)).thenReturn(Optional.of(activeForm));
 
         // When / Then
         assertThatThrownBy(() -> formDefinitionService.deleteFormDefinition(formId))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Cannot delete form that is not in DRAFT status");
+                .hasMessageContaining("Cannot delete an active form");
+    }
+
+    @Test
+    void deleteFormDefinition_FormWithSubmissions_ShouldThrowException() {
+        // Given
+        UUID formId = UUID.randomUUID();
+        FormDefinition formWithSubmissions = FormDefinition.builder()
+                .id(formId)
+                .name("Form With Submissions")
+                .status(FormStatus.PUBLISHED)
+                .isActive(false)
+                .schema(testSchema)
+                .uiSchema(testUiSchema)
+                .submissions(List.of(new FormSubmission()))
+                .build();
+
+        when(formDefinitionRepository.findById(formId)).thenReturn(Optional.of(formWithSubmissions));
+
+        // When / Then
+        assertThatThrownBy(() -> formDefinitionService.deleteFormDefinition(formId))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Cannot delete form with existing submissions");
+    }
+
+    @Test
+    void deleteFormDefinition_InactivePublishedFormNoSubmissions_ShouldDeleteSuccessfully() {
+        // Given
+        UUID formId = UUID.randomUUID();
+        FormDefinition inactivePublishedForm = FormDefinition.builder()
+                .id(formId)
+                .name("Inactive Published Form")
+                .status(FormStatus.PUBLISHED)
+                .isActive(false)
+                .schema(testSchema)
+                .uiSchema(testUiSchema)
+                .build();
+
+        when(formDefinitionRepository.findById(formId)).thenReturn(Optional.of(inactivePublishedForm));
+
+        // When
+        formDefinitionService.deleteFormDefinition(formId);
+
+        // Then
+        verify(formDefinitionRepository, times(1)).delete(inactivePublishedForm);
     }
 
     // ========================================================================

@@ -128,11 +128,11 @@ public class FormDefinitionService {
 
     /**
      * Delete a form definition.
-     * Only DRAFT forms can be deleted.
+     * Forms can be deleted as long as they are not active and have no submissions.
      *
      * @param id the form ID
      * @throws IllegalArgumentException if form not found
-     * @throws IllegalStateException    if form is not in DRAFT status
+     * @throws IllegalStateException    if form is active or has submissions
      */
     @Transactional
     public void deleteFormDefinition(UUID id) {
@@ -141,6 +141,17 @@ public class FormDefinitionService {
         FormDefinition formDefinition = formDefinitionRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Form definition not found: " + id));
 
+        if (Boolean.TRUE.equals(formDefinition.getIsActive())) {
+            throw new IllegalStateException("Cannot delete an active form. Deactivate the form first.");
+        }
+
+        // Check for existing submissions
+        if (!formDefinition.getSubmissions().isEmpty()) {
+            throw new IllegalStateException(
+                    "Cannot delete form with existing submissions. " +
+                    "This form has " + formDefinition.getSubmissions().size() + " submission(s). " +
+                    "Archive the form instead to preserve data integrity.");
+        }
 
         formDefinitionRepository.delete(formDefinition);
         log.info("Deleted form definition: {}", id);
