@@ -153,7 +153,8 @@ public class FormBuilderController {
 
     /**
      * Delete a form definition.
-     * Only DRAFT forms can be deleted.
+     * Only inactive forms without submissions can be deleted.
+     * Exceptions are handled by GlobalExceptionHandler.
      *
      * @param id the form ID
      * @return no content if successful
@@ -161,17 +162,8 @@ public class FormBuilderController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteForm(@PathVariable UUID id) {
         log.debug("DELETE /api/forms/{}", id);
-
-        try {
-            formDefinitionService.deleteFormDefinition(id);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException e) {
-            log.error("Form not found: {}", id, e);
-            return ResponseEntity.notFound().build();
-        } catch (IllegalStateException e) {
-            log.error("Cannot delete form: {}", id, e);
-            return ResponseEntity.badRequest().build();
-        }
+        formDefinitionService.deleteFormDefinition(id);
+        return ResponseEntity.noContent().build();
     }
 
     // ========================================================================

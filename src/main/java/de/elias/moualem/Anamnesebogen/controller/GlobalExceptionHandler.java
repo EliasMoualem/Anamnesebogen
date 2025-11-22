@@ -27,18 +27,6 @@ public class GlobalExceptionHandler {
     private final MessageSource messageSource;
 
     /**
-     * Get localized message from MessageSource
-     */
-    private String getMessage(String key, Object... args) {
-        try {
-            return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
-        } catch (Exception e) {
-            log.warn("Failed to get localized message for key: {}", key);
-            return key; // Fallback to key if message not found
-        }
-    }
-
-    /**
      * Handle IllegalArgumentException (e.g., entity not found).
      */
     @ExceptionHandler(IllegalArgumentException.class)
@@ -132,5 +120,17 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    /**
+     * Get localized message from MessageSource
+     */
+    private String getMessage(String key, Object... args) {
+        try {
+            return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
+        } catch (Exception e) {
+            log.warn("Failed to get localized message for key: {}", key);
+            return key; // Fallback to key if message not found
+        }
     }
 }
