@@ -73,6 +73,15 @@ public interface FormDefinitionRepository extends JpaRepository<FormDefinition, 
     List<FormDefinition> findByCategory(FormCategory category);
 
     /**
+     * Find all forms by category and status.
+     *
+     * @param category the form category
+     * @param status   the form status
+     * @return list of forms matching both category and status
+     */
+    List<FormDefinition> findByCategoryAndStatus(FormCategory category, FormStatus status);
+
+    /**
      * Find the active published form for a specific category.
      * Convenience method combining category, active, and published filters.
      *

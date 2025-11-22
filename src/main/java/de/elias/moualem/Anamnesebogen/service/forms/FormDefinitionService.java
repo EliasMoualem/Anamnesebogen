@@ -219,6 +219,22 @@ public class FormDefinitionService {
     }
 
     /**
+     * Get all forms by category and status.
+     *
+     * @param category the form category
+     * @param status   the form status
+     * @return list of forms matching both category and status
+     */
+    @Transactional(readOnly = true)
+    public List<FormDefinitionDTO> getFormsByCategoryAndStatus(FormCategory category, FormStatus status) {
+        log.debug("Fetching forms by category: {} and status: {}", category, status);
+
+        return formDefinitionRepository.findByCategoryAndStatus(category, status).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Get form definition entity by ID (for internal use with template
      generation).
      *

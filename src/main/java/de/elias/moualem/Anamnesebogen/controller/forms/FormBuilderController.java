@@ -36,9 +36,12 @@ public class FormBuilderController {
     // ========================================================================
 
     /**
-     * Get all form definitions.
+     * Get all form definitions with optional filtering.
+     * Supports filtering by category, status, or both combined.
      *
-     * @return list of all forms
+     * @param category optional category filter
+     * @param status   optional status filter
+     * @return list of forms matching the filters
      */
     @GetMapping
     public ResponseEntity<List<FormDefinitionDTO>> getAllForms(
@@ -48,7 +51,9 @@ public class FormBuilderController {
         log.debug("GET /api/forms - category: {}, status: {}", category, status);
 
         List<FormDefinitionDTO> forms;
-        if (category != null) {
+        if (category != null && status != null) {
+            forms = formDefinitionService.getFormsByCategoryAndStatus(category, status);
+        } else if (category != null) {
             forms = formDefinitionService.getFormsByCategory(category);
         } else if (status != null) {
             forms = formDefinitionService.getFormsByStatus(status);
